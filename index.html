@@ -55,7 +55,7 @@
             border-radius: 8px; padding: 15px;
         }
         .editor-section h3 { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
-        .form-group { margin-bottom: 15px; position: relative; } /* ✨ 给form-group加个相对定位，为了放表情选择器 */
+        .form-group { margin-bottom: 15px; position: relative; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
         .form-group input[type="text"], .form-group select, .form-group textarea {
             width: 100%; padding: 8px; border: 1px solid var(--border-color);
@@ -214,29 +214,30 @@
             cursor: grabbing;
         }
 
-        /* 【✨ 新增/修改处 1/5】: 添加 Emoji 相关的样式 */
         .wechat-emoji {
             width: 20px;
             height: 20px;
-            vertical-align: middle; /* 让表情和文字对齐 */
+            vertical-align: middle;
         }
         .bubble .wechat-emoji {
-            width: 24px; /* 聊天气泡里的表情可以稍大一点 */
+            width: 24px;
             height: 24px;
         }
         .emoji-btn {
             position: absolute;
             right: 5px;
-            top: 28px; /* 根据你的输入框位置微调 */
+            top: 28px;
             cursor: pointer;
             font-size: 20px;
             color: #888;
             z-index: 10;
         }
+        
+        /* 【✨ CSS 修正处！】这里是关键！之前有两行 display，导致它一直显示。现在只保留 display: none; */
         .emoji-picker {
             display: none; /* 默认隐藏 */
             position: absolute;
-            bottom: 100%; /* 显示在输入框上方 */
+            bottom: 100%;
             right: 0;
             width: 300px;
             height: 200px;
@@ -247,12 +248,12 @@
             padding: 10px;
             overflow-y: auto;
             z-index: 100;
-            display: grid;
+            /* display: grid;  <-- 我把这行错误的删掉了！ */
             grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
             gap: 5px;
         }
         .emoji-picker.show {
-            display: grid; /* 显示时用 grid 布局 */
+            display: grid; /* 只有带 .show 类的时候才显示为 grid 布局 */
         }
         .emoji-picker img {
             width: 28px;
@@ -283,140 +284,19 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // 【✨ 最终版】: 使用你自己的图床链接，并保持了官方表情顺序
         const WECHAT_EMOJIS = [
-            {"name":"[微笑]","url":"https://i.postimg.cc/wTZ1JhZX/image.png"},
-            {"name":"[撇嘴]","url":"https://i.postimg.cc/3N9gYdxL/image.png"},
-            {"name":"[色]","url":"https://i.postimg.cc/4y49LsQp/image.png"},
-            {"name":"[发呆]","url":"https://i.postimg.cc/Nf137tPd/image.png"},
-            {"name":"[得意]","url":"https://i.postimg.cc/Ss3BVxhv/image.png"},
-            {"name":"[流泪]","url":"https://i.postimg.cc/Y9KNx5Px/image.png"},
-            {"name":"[害羞]","url":"https://i.postimg.cc/7PzdwDDq/image.png"},
-            {"name":"[闭嘴]","url":"https://i.postimg.cc/4nCWHKgX/image.png"},
-            {"name":"[睡]","url":"https://i.postimg.cc/MGkjkyY6/image.png"},
-            {"name":"[大哭]","url":"https://i.postimg.cc/yNQ4gTrB/image.png"},
-            {"name":"[尴尬]","url":"https://i.postimg.cc/4d7MKR9b/image.png"},
-            {"name":"[发怒]","url":"https://i.postimg.cc/jStGM1pt/image.png"},
-            {"name":"[调皮]","url":"https://i.postimg.cc/zDRZvKwZ/image.png"},
-            {"name":"[呲牙]","url":"https://i.postimg.cc/K85yFbP1/image.png"},
-            {"name":"[惊讶]","url":"https://i.postimg.cc/tC5r44cG/image.png"},
-            {"name":"[难过]","url":"https://i.postimg.cc/0j9pTpPM/image.png"},
-            {"name":"[囧]","url":"https://i.postimg.cc/L88xYMdY/image.png"},
-            {"name":"[抓狂]","url":"https://i.postimg.cc/V5QcsLZC/image.png"},
-            {"name":"[吐]","url":"https://i.postimg.cc/XY5pgr6T/image.png"},
-            {"name":"[偷笑]","url":"https://i.postimg.cc/PJFPSZxk/image.png"},
-            {"name":"[愉快]","url":"https://i.postimg.cc/SQ5Stmdq/image.png"},
-            {"name":"[白眼]","url":"https://i.postimg.cc/JhRdQBBn/image.png"},
-            {"name":"[傲慢]","url":"https://i.postimg.cc/BnTVDCbk/image.png"},
-            {"name":"[困]","url":"https://i.postimg.cc/ZKTc2h57/image.png"},
-            {"name":"[惊恐]","url":"https://i.postimg.cc/9FV827JB/image.png"},
-            {"name":"[流汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},
-            {"name":"[憨笑]","url":"https://i.postimg.cc/28fJ5J8h/image.png"},
-            {"name":"[悠闲]","url":"https://i.postimg.cc/wMS9tkM3/image.png"},
-            {"name":"[奋斗]","url":"https://i.postimg.cc/MTV526B4/image.png"},
-            {"name":"[咒骂]","url":"https://i.postimg.cc/fbwD0yz7/image.png"},
-            {"name":"[疑问]","url":"https://i.postimg.cc/ZqcYf37D/image.png"},
-            {"name":"[嘘]","url":"https://i.postimg.cc/pXwdyP5k/image.png"},
-            {"name":"[晕]","url":"https://i.postimg.cc/mgWbBVK5/image.png"},
-            {"name":"[衰]","url":"https://i.postimg.cc/4xHhF8V2/image.png"},
-            {"name":"[骷髅]","url":"https://i.postimg.cc/qqrLpPX7/image.png"},
-            {"name":"[敲打]","url":"https://i.postimg.cc/L6CzWY75/image.png"},
-            {"name":"[再见]","url":"https://i.postimg.cc/t4d9TWjC/image.png"},
-            {"name":"[擦汗]","url":"https://i.postimg.cc/kXKm1KDF/image.png"},
-            {"name":"[抠鼻]","url":"https://i.postimg.cc/MTV526B4/image.png"},
-            {"name":"[鼓掌]","url":"https://i.postimg.cc/3N2cBj9k/image.png"},
-            {"name":"[坏笑]","url":"https://i.postimg.cc/mDHXL3vm/image.png"},
-            {"name":"[左哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},
-            {"name":"[右哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},
-            {"name":"[哈欠]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},
-            {"name":"[鄙视]","url":"https://i.postimg.cc/6q4HQrFH/image.png"},
-            {"name":"[委屈]","url":"https://i.postimg.cc/tTqJyDnj/image.png"},
-            {"name":"[快哭了]","url":"https://i.postimg.cc/HW0z6Ld8/image.png"},
-            {"name":"[阴险]","url":"https://i.postimg.cc/rmwV7m7y/image.png"},
-            {"name":"[亲亲]","url":"https://i.postimg.cc/8z7hgkQH/image.png"},
-            {"name":"[可怜]","url":"https://i.postimg.cc/QMBSmkdj/image.png"},
-            {"name":"[菜刀]","url":"https://i.postimg.cc/pVgvJqVL/image.png"},
-            {"name":"[西瓜]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},
-            {"name":"[啤酒]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},
-            {"name":"[咖啡]","url":"https://i.postimg.cc/3xfn2b7L/image.png"},
-            {"name":"[猪头]","url":"https://i.postimg.cc/sxZrRZmz/image.png"},
-            {"name":"[玫瑰]","url":"https://i.postimg.cc/mgkSZNM7/image.png"},
-            {"name":"[凋谢]","url":"https://i.postimg.cc/L5PrWF46/image.png"},
-            {"name":"[嘴唇]","url":"https://i.postimg.cc/zDLbftPz/image.png"},
-            {"name":"[爱心]","url":"https://i.postimg.cc/52dr6r48/image.png"},
-            {"name":"[心碎]","url":"https://i.postimg.cc/L6YXHJ5n/image.png"},
-            {"name":"[蛋糕]","url":"https://i.postimg.cc/LXJdzZrP/image.png"},
-            {"name":"[闪电]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},
-            {"name":"[炸弹]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},
-            {"name":"[便便]","url":"https://i.postimg.cc/9X4V9vhk/image.png"},
-            {"name":"[月亮]","url":"https://i.postimg.cc/qM3kPWDK/image.png"},
-            {"name":"[太阳]","url":"https://i.postimg.cc/W4Mqsh9M/image.png"},
-            {"name":"[拥抱]","url":"https://i.postimg.cc/76tH44y3/image.png"},
-            {"name":"[强]","url":"https://i.postimg.cc/c44RTMFP/image.png"},
-            {"name":"[弱]","url":"https://i.postimg.cc/wvpJNhtf/image.png"},
-            {"name":"[握手]","url":"https://i.postimg.cc/0QVQNm7J/image.png"},
-            {"name":"[胜利]","url":"https://i.postimg.cc/3NLDzVtV/image.png"},
-            {"name":"[抱拳]","url":"https://i.postimg.cc/wvvfC82Y/image.png"},
-            {"name":"[勾引]","url":"https://i.postimg.cc/ZRGQpsPk/image.png"},
-            {"name":"[拳头]","url":"https://i.postimg.cc/PqZYN6qv/image.png"},
-            {"name":"[OK]","url":"https://i.postimg.cc/vH6j8ysQ/OK.png"},
-            {"name":"[跳跳]","url":"https://i.postimg.cc/sXmBZbCx/image.png"},
-            {"name":"[发抖]","url":"https://i.postimg.cc/jd0V72vW/image.png"},
-            {"name":"[怄火]","url":"https://i.postimg.cc/jd0V72vW/image.png"},
-            {"name":"[转圈]","url":"https://i.postimg.cc/Px7jcMmK/image.png"},
-            {"name":"[嘿哈]","url":"https://i.postimg.cc/nLMS5f0b/image.png"},
-            {"name":"[捂脸]","url":"https://i.postimg.cc/2yJSQDck/image.png"},
-            {"name":"[奸笑]","url":"https://i.postimg.cc/3Njtp8Jp/image.png"},
-            {"name":"[机智]","url":"https://i.postimg.cc/hvRCfzgc/image.png"},
-            {"name":"[皱眉]","url":"https://i.postimg.cc/cHCWXz8r/image.png"},
-            {"name":"[耶]","url":"https://i.postimg.cc/FKmsgGZL/image.png"},
-            {"name":"[红包]","url":"https://i.postimg.cc/JhgYCY2y/image.png"},
-            {"name":"[蜡烛]","url":"https://i.postimg.cc/rFQJLYd8/image.png"},
-            {"name":"[吃瓜]","url":"https://i.postimg.cc/Bn3GdbKW/image.png"},
-            {"name":"[加油]","url":"https://i.postimg.cc/ry5n7JCm/image.png"},
-            {"name":"[汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},
-            {"name":"[天啊]","url":"https://i.postimg.cc/mkrP3VTw/image.png"},
-            {"name":"[Emm]","url":"https://i.postimg.cc/CM2XV19P/Emm.png"},
-            {"name":"[社会社会]","url":"https://i.postimg.cc/HsxMbWxg/image.png"},
-            {"name":"[旺柴]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},
-            {"name":"[好的]","url":"https://i.postimg.cc/CxhQGq8K/image.png"},
-            {"name":"[哇]","url":"https://i.postimg.cc/15fgfWCR/image.png"},
-            {"name":"[打脸]","url":"https://i.postimg.cc/ZqKz5QHV/image.png"},
-            {"name":"[裂开]","url":"https://i.postimg.cc/FKJg3rTR/image.png"},
-            {"name":"[doge]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},
-            {"name":"[惊喜]","url":"https://i.postimg.cc/15fgfWCR/image.png"},
-            {"name":"[让我看看]","url":"https://i.postimg.cc/1trFrfw9/image.png"},
-            {"name":"[叹气]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},
-            {"name":"[苦涩]","url":"https://i.postimg.cc/8cbbcZtm/image.png"},
-            {"name":"[翻白眼]","url":"https://i.postimg.cc/tgg8jxRc/image.png"},
-            {"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"},
-            {"name":"[合十]","url":"https://i.postimg.cc/VkKHDk9W/image.png"},
-            {"name":"[失望]","url":"https://i.postimg.cc/DyMX6VJb/image.png"},
-            {"name":"[庆祝]","url":"https://i.postimg.cc/Qdvc8Ljr/image.png"},
-            {"name":"[恐惧]","url":"https://i.postimg.cc/6QDcm28n/image.png"},
-            {"name":"[无语]","url":"https://i.postimg.cc/Gt9pT2jg/image.png"},
-            {"name":"[烟花]","url":"https://i.postimg.cc/bw1wt4QP/image.png"},
-            {"name":"[爆竹]","url":"https://i.postimg.cc/V6VG1GZr/image.png"},
-            {"name":"[生病]","url":"https://i.postimg.cc/XNxFZBnL/image.png"},
-            {"name":"[發]","url":"https://i.postimg.cc/0ynhFfvm/image.png"},
-            {"name":"[破涕为笑]","url":"https://i.postimg.cc/BZC5xwBx/image.png"},
-            {"name":"[礼物]","url":"https://i.postimg.cc/rFQJLYd8/image.png"},
-            {"name":"[福]","url":"https://i.postimg.cc/zfP6XGVG/image.png"},
-            {"name":"[笑脸]","url":"https://i.postimg.cc/05HjRY8T/image.png"},
-            {"name":"[脸红]","url":"https://i.postimg.cc/sgL4MQ9q/image.png"},
-{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"}
+            {"name":"[微笑]","url":"https://i.postimg.cc/wTZ1JhZX/image.png"},{"name":"[撇嘴]","url":"https://i.postimg.cc/3N9gYdxL/image.png"},{"name":"[色]","url":"https://i.postimg.cc/4y49LsQp/image.png"},{"name":"[发呆]","url":"https://i.postimg.cc/Nf137tPd/image.png"},{"name":"[得意]","url":"https://i.postimg.cc/Ss3BVxhv/image.png"},{"name":"[流泪]","url":"https://i.postimg.cc/Y9KNx5Px/image.png"},{"name":"[害羞]","url":"https://i.postimg.cc/7PzdwDDq/image.png"},{"name":"[闭嘴]","url":"https://i.postimg.cc/4nCWHKgX/image.png"},{"name":"[睡]","url":"https://i.postimg.cc/MGkjkyY6/image.png"},{"name":"[大哭]","url":"https://i.postimg.cc/yNQ4gTrB/image.png"},{"name":"[尴尬]","url":"https://i.postimg.cc/4d7MKR9b/image.png"},{"name":"[发怒]","url":"https://i.postimg.cc/jStGM1pt/image.png"},{"name":"[调皮]","url":"https://i.postimg.cc/zDRZvKwZ/image.png"},{"name":"[呲牙]","url":"https://i.postimg.cc/K85yFbP1/image.png"},{"name":"[惊讶]","url":"https://i.postimg.cc/tC5r44cG/image.png"},{"name":"[难过]","url":"https://i.postimg.cc/0j9pTpPM/image.png"},{"name":"[囧]","url":"https://i.postimg.cc/L88xYMdY/image.png"},{"name":"[抓狂]","url":"https://i.postimg.cc/V5QcsLZC/image.png"},{"name":"[吐]","url":"https://i.postimg.cc/XY5pgr6T/image.png"},{"name":"[偷笑]","url":"https://i.postimg.cc/PJFPSZxk/image.png"},{"name":"[愉快]","url":"https://i.postimg.cc/SQ5Stmdq/image.png"},{"name":"[白眼]","url":"https://i.postimg.cc/JhRdQBBn/image.png"},{"name":"[傲慢]","url":"https://i.postimg.cc/BnTVDCbk/image.png"},{"name":"[困]","url":"https://i.postimg.cc/ZKTc2h57/image.png"},{"name":"[惊恐]","url":"https://i.postimg.cc/9FV827JB/image.png"},{"name":"[流汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[憨笑]","url":"https://i.postimg.cc/28fJ5J8h/image.png"},{"name":"[悠闲]","url":"https://i.postimg.cc/wMS9tkM3/image.png"},{"name":"[奋斗]","url":"https://i.postimg.cc/MTV526B4/image.png"},{"name":"[咒骂]","url":"https://i.postimg.cc/fbwD0yz7/image.png"},{"name":"[疑问]","url":"https://i.postimg.cc/ZqcYf37D/image.png"},{"name":"[嘘]","url":"https://i.postimg.cc/pXwdyP5k/image.png"},{"name":"[晕]","url":"https://i.postimg.cc/mgWbBVK5/image.png"},{"name":"[衰]","url":"https://i.postimg.cc/4xHhF8V2/image.png"},{"name":"[骷髅]","url":"https://i.postimg.cc/qqrLpPX7/image.png"},{"name":"[敲打]","url":"https://i.postimg.cc/L6CzWY75/image.png"},{"name":"[再见]","url":"https://i.postimg.cc/t4d9TWjC/image.png"},{"name":"[擦汗]","url":"https://i.postimg.cc/kXKm1KDF/image.png"},{"name":"[抠鼻]","url":"https://i.postimg.cc/MTV526B4/image.png"},{"name":"[鼓掌]","url":"https://i.postimg.cc/3N2cBj9k/image.png"},{"name":"[坏笑]","url":"https://i.postimg.cc/mDHXL3vm/image.png"},{"name":"[左哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[右哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[哈欠]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[鄙视]","url":"https://i.postimg.cc/6q4HQrFH/image.png"},{"name":"[委屈]","url":"https://i.postimg.cc/tTqJyDnj/image.png"},{"name":"[快哭了]","url":"https://i.postimg.cc/HW0z6Ld8/image.png"},{"name":"[阴险]","url":"https://i.postimg.cc/rmwV7m7y/image.png"},{"name":"[亲亲]","url":"https://i.postimg.cc/8z7hgkQH/image.png"},{"name":"[可怜]","url":"https://i.postimg.cc/QMBSmkdj/image.png"},{"name":"[菜刀]","url":"https://i.postimg.cc/pVgvJqVL/image.png"},{"name":"[西瓜]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},{"name":"[啤酒]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},{"name":"[咖啡]","url":"https://i.postimg.cc/3xfn2b7L/image.png"},{"name":"[猪头]","url":"https://i.postimg.cc/sxZrRZmz/image.png"},{"name":"[玫瑰]","url":"https://i.postimg.cc/mgkSZNM7/image.png"},{"name":"[凋谢]","url":"https://i.postimg.cc/L5PrWF46/image.png"},{"name":"[嘴唇]","url":"https://i.postimg.cc/zDLbftPz/image.png"},{"name":"[爱心]","url":"https://i.postimg.cc/52dr6r48/image.png"},{"name":"[心碎]","url":"https://i.postimg.cc/L6YXHJ5n/image.png"},{"name":"[蛋糕]","url":"https://i.postimg.cc/LXJdzZrP/image.png"},{"name":"[闪电]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[炸弹]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[便便]","url":"https://i.postimg.cc/9X4V9vhk/image.png"},{"name":"[月亮]","url":"https://i.postimg.cc/qM3kPWDK/image.png"},{"name":"[太阳]","url":"https://i.postimg.cc/W4Mqsh9M/image.png"},{"name":"[拥抱]","url":"https://i.postimg.cc/76tH44y3/image.png"},{"name":"[强]","url":"https://i.postimg.cc/c44RTMFP/image.png"},{"name":"[弱]","url":"https://i.postimg.cc/wvpJNhtf/image.png"},{"name":"[握手]","url":"https://i.postimg.cc/0QVQNm7J/image.png"},{"name":"[胜利]","url":"https://i.postimg.cc/3NLDzVtV/image.png"},{"name":"[抱拳]","url":"https://i.postimg.cc/wvvfC82Y/image.png"},{"name":"[勾引]","url":"https://i.postimg.cc/ZRGQpsPk/image.png"},{"name":"[拳头]","url":"https://i.postimg.cc/PqZYN6qv/image.png"},{"name":"[OK]","url":"https://i.postimg.cc/vH6j8ysQ/OK.png"},{"name":"[跳跳]","url":"https://i.postimg.cc/sXmBZbCx/image.png"},{"name":"[发抖]","url":"https://i.postimg.cc/jd0V72vW/image.png"},{"name":"[怄火]","url":"https://i.postimg.cc/jd0V72vW/image.png"},{"name":"[转圈]","url":"https://i.postimg.cc/Px7jcMmK/image.png"},{"name":"[嘿哈]","url":"https://i.postimg.cc/nLMS5f0b/image.png"},{"name":"[捂脸]","url":"https://i.postimg.cc/2yJSQDck/image.png"},{"name":"[奸笑]","url":"https://i.postimg.cc/3Njtp8Jp/image.png"},{"name":"[机智]","url":"https://i.postimg.cc/hvRCfzgc/image.png"},{"name":"[皱眉]","url":"https://i.postimg.cc/cHCWXz8r/image.png"},{"name":"[耶]","url":"https://i.postimg.cc/FKmsgGZL/image.png"},{"name":"[红包]","url":"https://i.postimg.cc/JhgYCY2y/image.png"},{"name":"[吃瓜]","url":"https://i.postimg.cc/Bn3GdbKW/image.png"},{"name":"[加油]","url":"https://i.postimg.cc/ry5n7JCm/image.png"},{"name":"[汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[天啊]","url":"https://i.postimg.cc/mkrP3VTw/image.png"},{"name":"[Emm]","url":"https://i.postimg.cc/CM2XV19P/Emm.png"},{"name":"[社会社会]","url":"https://i.postimg.cc/HsxMbWxg/image.png"},{"name":"[旺柴]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[好的]","url":"https://i.postimg.cc/CxhQGq8K/image.png"},{"name":"[哇]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[打脸]","url":"https://i.postimg.cc/ZqKz5QHV/image.png"},{"name":"[裂开]","url":"https://i.postimg.cc/FKJg3rTR/image.png"},{"name":"[doge]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[惊喜]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[让我看看]","url":"https://i.postimg.cc/1trFrfw9/image.png"},{"name":"[叹气]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[苦涩]","url":"https://i.postimg.cc/8cbbcZtm/image.png"},{"name":"[翻白眼]","url":"https://i.postimg.cc/tgg8jxRc/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"},{"name":"[合十]","url":"https://i.postimg.cc/VkKHDk9W/image.png"},{"name":"[失望]","url":"https://i.postimg.cc/DyMX6VJb/image.png"},{"name":"[庆祝]","url":"https://i.postimg.cc/Qdvc8Ljr/image.png"},{"name":"[恐惧]","url":"https://i.postimg.cc/6QDcm28n/image.png"},{"name":"[无语]","url":"https://i.postimg.cc/Gt9pT2jg/image.png"},{"name":"[烟花]","url":"https://i.postimg.cc/bw1wt4QP/image.png"},{"name":"[爆竹]","url":"https://i.postimg.cc/V6VG1GZr/image.png"},{"name":"[生病]","url":"https://i.postimg.cc/XNxFZBnL/image.png"},{"name":"[發]","url":"https://i.postimg.cc/0ynhFfvm/image.png"},{"name":"[破涕为笑]","url":"https://i.postimg.cc/BZC5xwBx/image.png"},{"name":"[礼物]","url":"https://i.postimg.cc/rFQJLYd8/image.png"},{"name":"[福]","url":"https://i.postimg.cc/zfP6XGVG/image.png"},{"name":"[笑脸]","url":"https://i.postimg.cc/05HjRY8T/image.png"},{"name":"[脸红]","url":"https://i.postimg.cc/sgL4MQ9q/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"}
         ];
-        // 为了快速查找，我们把数组转换成一个 "字典" 对象
         const wechatEmojiMap = WECHAT_EMOJIS.reduce((acc, emoji) => {
             acc[emoji.name] = emoji.url;
             return acc;
         }, {});
 
-        const DEFAULT_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAaklEQVR4Xu3QMQEAAADCIPuntscHCZqYfwRoQAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACIgr4sBWwO7T5wAAAAASUVORK5CYII=';
+        const DEFAULT_AVATAR = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAaklEQVR4Xu3QMQEAAADCIPuntscHCZqYfwRoQAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACAiIAAJEgAAiQAAQEAECiAABQECECBAABIgAAURAABAgAgQQAQJAgAgQQAQIIAIEECACBJBAAgQQAAQIIAIEEAECCBAgAgQQAAQIIAIEEAECCBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECBAgAgQQAQIIAIEECECACIgr4sBWwO7T5wAAAAASUVORK5CYII=';
         const DEFAULT_IMAGE_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2NjYyIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1tGluZWpvaW49InJvdW5kIj48cmVjdIHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiPjwvY2lyY2xlPjxwb2x5bGluZSBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEiPjwvcG9seWxpbmU+PC9zdmc+';
 
         let state = { chatTitle: '', selfUserId: null, users: [], messages: [] };
-        let activeTextarea = null; // ✨ 用来追踪当前正在编辑的输入框
+        let activeTextarea = null;
         const dom = {
             chatTitleEditor: document.getElementById('chat-title-editor'),
             userProfilesEditor: document.getElementById('user-profiles-editor'),
@@ -434,17 +314,15 @@
         };
         const generateId = () => `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        // 【✨ 新增/修改处 3/5】: 新增一个函数，用来把 [微笑] 这样的文本转成 <img> 标签
         function parseEmojis(text) {
             if (!text || typeof text !== 'string') return '';
             return text.replace(/\[([^\]]+)\]/g, (match, name) => {
                 const emojiName = `[${name}]`;
                 const url = wechatEmojiMap[emojiName];
                 if (url) {
-                    // crossorigin="anonymous" 是告诉浏览器可以跨域使用这张图，这对截图导出至关重要！
                     return `<img src="${url}" alt="${name}" class="wechat-emoji" crossorigin="anonymous">`;
                 }
-                return match; // 如果没找到对应的表情，就原样返回
+                return match;
             });
         }
 
@@ -487,7 +365,6 @@
                         summary = `<span class="summary-type">[图片/表情]</span>`;
                         contentEditorHtml = `<div class="message-editor-image-controls"><img src="${item.content || DEFAULT_IMAGE_PLACEHOLDER}" alt="Image Preview"><label class="btn btn-secondary btn-sm">上传图片/表情<input type="file" accept="image/*" class="message-image-file-input" style="display:none;"></label></div>`;
                     } else {
-                        // 【✨ 新增/修改处 4/5】: 在文本消息编辑器里，加入表情按钮和表情选择面板
                         const parsedContent = parseEmojis(item.content);
                         summary = `<span class="summary-type">[文本]</span> ${item.content.length > 20 ? item.content.substring(0, 20) + '...' : item.content}`;
                         contentEditorHtml = `
@@ -508,16 +385,15 @@
                 editorItemDiv.innerHTML = `<div class="message-editor-header">${headerHtml}<button class="delete-btn" title="删除此条">×</button></div><div class="message-editor-body">${bodyHtml}</div>`;
                 dom.messageListEditor.appendChild(editorItemDiv);
 
-                // 动态填充表情选择器内容
                 if (item.type === 'message' && item.contentType === 'text') {
                     const picker = editorItemDiv.querySelector(`#picker-${item.id}`);
-                    if (picker && !picker.innerHTML) { // 只在第一次渲染时填充
+                    if (picker && !picker.innerHTML) {
                         WECHAT_EMOJIS.forEach(emoji => {
                             const img = document.createElement('img');
                             img.src = emoji.url;
                             img.alt = emoji.name;
                             img.title = emoji.name;
-                            img.dataset.code = emoji.name; // 把表情代码存在 data 属性里
+                            img.dataset.code = emoji.name;
                             picker.appendChild(img);
                         });
                     }
@@ -541,10 +417,8 @@
                     previewItemDiv.className = `message-item ${isSentByMe ? 'sent' : 'received'}`;
                     let bubbleHtml = '';
                     if (isImage) {
-                        // ✨ 这里也要加上 crossorigin="anonymous" 属性
                         bubbleHtml = `<div class="bubble bubble-image"><img src="${item.content || DEFAULT_IMAGE_PLACEHOLDER}" class="message-image-preview" alt="图片消息" crossorigin="anonymous"></div>`;
                     } else {
-                        // ✨ 在这里调用我们的新函数来解析表情
                         const contentWithEmojis = parseEmojis(item.content.replace(/\n/g, '<br>'));
                         bubbleHtml = `<div class="bubble">${contentWithEmojis}</div>`;
                     }
@@ -652,9 +526,8 @@
             }
         });
 
-        // 【✨ 新增/修改处 5/5】: 增加处理 Emoji 按钮和选择器点击的逻辑
+        // 【✨ JS 修正处！】这里是最终的、绝对正确的 JS 逻辑！
         dom.messageListEditor.addEventListener('focusin', e => {
-            // 当用户点击输入框时，记录下这个输入框
             if (e.target.classList.contains('content-textarea')) {
                 activeTextarea = e.target;
             }
@@ -666,33 +539,41 @@
             const item = state.messages.find(m => m.id === itemEditor.dataset.itemId);
             if (!item) return;
 
-            // 点击表情按钮
+            // 这部分是处理点击“表情按钮”的逻辑，它会切换表情面板的显示和隐藏
             if (e.target.classList.contains('emoji-btn')) {
                 const picker = itemEditor.querySelector('.emoji-picker');
-                if (picker) {
-                    picker.classList.toggle('show');
+                if (!picker) return;
+                const isCurrentlyOpen = picker.classList.contains('show');
+                
+                // 先把所有可能已经打开的表情面板都关掉
+                document.querySelectorAll('.emoji-picker.show').forEach(p => p.classList.remove('show'));
+                
+                // 如果刚才这个面板是关着的，就把它打开
+                if (!isCurrentlyOpen) {
+                    picker.classList.add('show');
                 }
-                return;
+                // 如果刚才就是开着的，那上面那句关掉所有面板的代码已经把它关了，正好实现了“再点一次就关闭”的效果
+                return; // 操作完成，结束
             }
 
-            // 点击表情选择器里的某个表情
+            // 这部分是处理点击“表情面板里的某个表情”的逻辑
             if (e.target.closest('.emoji-picker') && e.target.tagName === 'IMG') {
                 const code = e.target.dataset.code;
                 if (activeTextarea && code) {
-                    // 插入表情代码到输入框
                     const start = activeTextarea.selectionStart;
                     const end = activeTextarea.selectionEnd;
                     const text = activeTextarea.value;
                     activeTextarea.value = text.substring(0, start) + code + text.substring(end);
                     activeTextarea.focus();
                     activeTextarea.selectionStart = activeTextarea.selectionEnd = start + code.length;
-                    
-                    // 手动触发 input 事件来更新状态和预览
                     activeTextarea.dispatchEvent(new Event('input', { bubbles: true }));
                 }
-                e.target.closest('.emoji-picker').classList.remove('show'); // 选完后关闭
-                return;
+                // ✨✨✨ 关键修改！我把下面这行删掉了，这样它就不会在选择表情后自动关闭了！
+                // e.target.closest('.emoji-picker').classList.remove('show');
+                return; // 同样，操作完成，结束
             }
+
+            // --- 下面是原来的其他逻辑，保持不变 ---
 
             if (e.target.classList.contains('delete-btn')) {
                 state.messages = state.messages.filter(m => m.id !== item.id);
@@ -711,11 +592,19 @@
             }
         });
         
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.emoji-btn') && !e.target.closest('.emoji-picker')) {
+                document.querySelectorAll('.emoji-picker.show').forEach(picker => {
+                    picker.classList.remove('show');
+                });
+            }
+        });
+        
         dom.fillExampleBtn.addEventListener('click', () => {
             const user1Id = generateId(), user2Id = generateId(), user3Id = generateId();
-            const avatar1_b64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAHgAeAMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAABQYDBAcCAf/EADUQAAIBAwICBwYGAwAAAAAAAAABAgMEEQUhBhIxQVFhcRMiMoGRobHB0eHwFDNCUvEHYnL/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAgMEAQUG/8QAIhEBAQACAgICAgMAAAAAAAAAAAECAxEEEiExQRNRYSIy/9oADAMBAAIRAxEAPwDuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHjWqwpU5VKklGEU5Sk+iSA9gct4g8Z6jWqSo2UnRovK54/FL/h9C34d4Jv9WcalZOhQe7qSWG/wAPU6fT4fLlye2vj+sM8+THH2dJz3h/wAY9RoVI0r1p16LwuZ/FH/n1Oq21eFzQp16TzCpFSi/Q9Xm8Pl4s+2vj+s8ceTHL2egAeeoAAAAAAAAAABH+I9zK04fvpweJyjyw9JS0X8kgeKPGlW9vJWVnNqjCXK5ReOfLq/Q6LwZ4OpWdOF5fQVS4ksxhJZVP09X6nO/Z/tY17+pdVI80aC5Y36yfX8j0Y+j4vD48c+T92X+sc8s5z2x6egA8tQAAAAAAADg/tE3bnqVvbJ+7Tpc7Xq5P/wD0O8HkvtF25alRupP3alLkT9VF/wD2en7P+D/AP8A+sM/4/o7vwjQhb8OWEKa5U6UZv1k8v8AUnCP8N0IW/D1hCmso0ozfrJc39yQPV5v/wA2X/L04/xAAHnoAAAAAAAAAAcH9o22U9St7pL3q1LlZ6uL/wDsz0H2jbZT1K3ukverUuVnq4v/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APo9P2f8A/Z//APLDH+P6O78I15XHDlhUnvKlGMH6xXL/AGJBH+Gq8rfh6whUeXGlGD9Yrm/uSB4vN/8Amy/5enH+IAA89QAAAAAAAAADg/tG27nqVvdJe9TpcjPVyf8A/o7weS+0bbuepW90l71OlyM9XJ//AOj0/Z//ANn/AP8ArDP+P6O78I0IW/DlhCmuVOkZvrJ5f7kkR/huhC34esIU1lRozm/WS5n9yQPV5v/AM2X/L04/wAQB56gAAAAAAAAAHB/aNtlPUre6S96tS5Gerj/APsz0H2jbZT1K3ukverUuVnq4v8A+zvB5L7RtsnqVG6k/dqUuRP1UX/9np+z/wD7P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAOD+0bbuepW90l71OlyM9XJ//AOjvB5L7Rtu56lb3SXvU6XIz1cn/APo9P2f/APZ//wD6wz/j+ju/CNCFvw5YQprlTpRm/WTy/wByQI/w3Qhb8PWCKyo0YzfzLmf3JA9Xm/8AzZf8vTj/ABAHnqAAAAAAAAAAcH9o22U9St7pL3q1Llk/FF/9noPtG2ynqVvdJe9Wpcsn4ov/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APZ6fs/4P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAAAAAAP/Z';
-            const avatar2_b64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAHgAeAMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAABQYDBAcCAf/EADUQAAIBAwMCAwYEBwAAAAAAAAABAgMEEQUhBhIxQVFhcRMiMoGRobHB0eHwFDNCUvEHYnL/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAgMEAQUG/8QAIhEBAQACAgICAgMAAAAAAAAAAAECAxEEEiExQRNRYSIy/9oADAMBAAIRAxEAPwDuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHjWqwpU5VKklGEU5Sk+iSA9gct4g8Z6jWqSo2UnRovK54/FL/h9C34d4Jv9WcalZOhQe7qSWG/wAPU6fT4fLlye2vj+sM8+THH2dJz3h/wAY9RoVI0r1p16LwuZ/FH/n1Oq21eFzQp16TzCpFSi/Q9Xm8Pl4s+2vj+s8ceTHL2egAeeoAAAAAAAAAABH+I9zK04fvpweJyjyw9JS0X8kgeKPGlW9vJWVnNqjCXK5ReOfLq/Q6LwZ4OpWdOF5fQVS4ksxhJZVP09X6nO/Z/tY17+pdVI80aC5Y36yfX8j0Y+j4vD48c+T92X+sc8s5z2x6egA8tQAAAAAAADg/tE3bnqVvbJ+7Tpc7Xq5P/wD0O8HkvtF25alRupP3alLkT9VF/wD2en7P+D/AP8A+sM/4/o7vwjQhb8OWEKa5U6UZv1k8v8AUnCP8N0IW/D1hCmso0ozfrJc39yQPV5v/wA2X/L04/xAAHnoAAAAAAAAAAcH9o22U9St7pL3q1LlZ6uL/wDsz0H2jbZT1K3ukverUuVnq4v/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APo9P2f8A/Z//APLDH+P6O78I15XHDlhUnvKlGMH6xXL/AGJBH+Gq8rfh6whUeXGlGD9Yrm/uSB4vN/8Amy/5enH+IAA89QAAAAAAAAADg/tG27nqVvdJe9TpcjPVyf8A/o7weS+0bbuepW90l71OlyM9XJ//AOj0/Z//ANn/AP8ArDP+P6O78I0IW/DlhCmuVOkZvrJ5f7kkR/huhC34esIU1lRozm/WS5n9yQPV5v/AM2X/L04/wAQB56gAAAAAAAAAHB/aNtlPUre6S96tS5Gerj/APsz0H2jbZT1K3ukverUuVnq4v8A+zvB5L7RtsnqVG6k/dqUuRP1UX/9np+z/wD7P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAOD+0bbuepW90l71OlyM9XJ//AOjvB5L7Rtu56lb3SXvU6XIz1cn/APo9P2f/APZ//wD6wz/j+ju/CNCFvw5YQprlTpRm/WTy/wByQI/w3Qhb8PWCKyo0YzfzLmf3JA9Xm/8AzZf8vTj/ABAHnqAAAAAAAAAAcH9o22U9St7pL3q1Llk/FF/9noPtG2ynqVvdJe9Wpcsn4ov/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APZ6fs/4P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAAAAAAP/Z';
-            const avatar3_b64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAHgAeAMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAABQYDBAcCAf/EADUQAAIBAwICBwYGAwAAAAAAAAABAgMEEQUhBhIxQVFhcRMiMoGRobHB0eHwFDNCUvEHYnL/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAgMEAQUG/8QAIhEBAQACAgICAgMAAAAAAAAAAAECAxEEEiExQRNRYSIy/9oADAMBAAIRAxEAPwDuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHjWqwpU5VKklGEU5Sk+iSA9gct4g8Z6jWqSo2UnRovK54/FL/h9C34d4Jv9WcalZOhQe7qSWG/wAPU6fT4fLlye2vj+sM8+THH2dJz3h/wAY9RoVI0r1p16LwuZ/FH/n1Oq21eFzQp16TzCpFSi/Q9Xm8Pl4s+2vj+s8ceTHL2egAeeoAAAAAAAAAABH+I9zK04fvpweJyjyw9JS0X8kgeKPGlW9vJWVnNqjCXK5ReOfLq/Q6LwZ4OpWdOF5fQVS4ksxhJZVP09X6nO/Z/tY17+pdVI80aC5Y36yfX8j0Y+j4vD48c+T92X+sc8s5z2x6egA8tQAAAAAAADg/tE3bnqVvbJ+7Tpc7Xq5P/wD0O8HkvtF25alRupP3alLkT9VF/wD2en7P+D/AP8A+sM/4/o7vwjQhb8OWEKa5U6UZv1k8v8AUnCP8N0IW/D1hCmso0ozfrJc39yQPV5v/wA2X/L04/xAAHnoAAAAAAAAAAcH9o22U9St7pL3q1LlZ6uL/wDsz0H2jbZT1K3ukverUuVnq4v/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APo9P2f8A/Z//APLDH+P6O78I15XHDlhUnvKlGMH6xXL/AGJBH+Gq8rfh6whUeXGlGD9Yrm/uSB4vN/8Amy/5enH+IAA89QAAAAAAAAADg/tG27nqVvdJe9TpcjPVyf8A/o7weS+0bbuepW90l71OlyM9XJ//AOj0/Z//ANn/AP8ArDP+P6O78I0IW/DlhCmuVOkZvrJ5f7kkR/huhC34esIU1lRozm/WS5n9yQPV5v/AM2X/L04/wAQB56gAAAAAAAAAHB/aNtlPUre6S96tS5Gerj/APsz0H2jbZT1K3ukverUuVnq4v8A+zvB5L7RtsnqVG6k/dqUuRP1UX/9np+z/wD7P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAOD+0bbuepW90l71OlyM9XJ//AOjvB5L7Rtu56lb3SXvU6XIz1cn/APo9P2f/APZ//wD6wz/j+ju/CNCFvw5YQprlTpRm/WTy/wByQI/w3Qhb8PWCKyo0YzfzLmf3JA9Xm/8AzZf8vTj/ABAHnqAAAAAAAAAAcH9o22U9St7pL3q1Llk/FF/9noPtG2ynqVvdJe9Wpcsn4ov/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APZ6fs/4P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAAAAAAP/Z';
+            const avatar1_b64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAHgAeAMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAABQYDBAcCAf/EADUQAAIBAwICBwYGAwAAAAAAAAABAgMEEQUhBhIxQVFhcRMiMoGRobHB0eHwFDNCUvEHYnL/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAgMEAQUG/8QAIhEBAQACAgICAgMAAAAAAAAAAAECAxEEEiExQRNRYSIy/9oADAMBAAIRAxEAPwDuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHjWqwpU5VKklGEU5Sk+iSA9gct4g8Z6jWqSo2UnRovK54/FL/h9C34d4Jv9WcalZOhQe7qSWG/wAPU6fT4fLlye2vj+sM8+THH2dJz3h/wAY9RoVI0r1p16LwuZ/FH/n1Oq21eFzQp16TzCpFSi/Q9Xm8Pl4s+2vj+s8ceTHL2egAeeoAAAAAAAAAABH+I9zK04fvpweJyjyw9JS0X8kgeKPGlW9vJWVnNqjCXK5ReOfLq/Q6LwZ4OpWdOF5fQVS4ksxhJZVP09X6nO/Z/tY17+pdVI80aC5Y36yfX8j0Y+j4vD48c+T92X+sc8s5z2x6egA8tQAAAAAAADg/tE3bnqVvbJ+7Tpc7Xq5P/wD0O8HkvtF25alRupP3alLkT9VF/wD2en7P+D/AP8A+sM/4/o7vwjQhb8OWEKa5U6UZv1k8v8AUnCP8N0IW/D1hCmso0ozfrJc39yQPV5v/wA2X/L04/xAAHnoAAAAAAAAAAcH9o22U9St7pL3q1LlZ6uL/wDsz0H2jbZT1K3ukverUuVnq4v/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APo9P2f8/wDZ//APLDH+P6O78I15XHDlhUnvKlGMH6xXL/AGJBH+Gq8rfh6whUeXGlGD9Yrm/uSB4vN/8Amy/5enH+IAA89QAAAAAAAAADg/tG27nqVvdJe9TpcjPVyf8A/o7weS+0bbuepW90l71OlyM9XJ//AOj0/Z//ANn/AP8ArDP+P6O78I0IW/DlhCmuVOkZvrJ5f7kkR/huhC34esIU1lRozm/WS5n9yQPV5v/AM2X/L04/wAQB56gAAAAAAAAAHB/aNtlPUre6S96tS5Gerj/APsz0H2jbZT1K3ukverUuVnq4v8A+zvB5L7RtsnqVG6k/dqUuRP1UX/9np+z/wD7P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAOD+0bbuepW90l71OlyM9XJ//AOjvB5L7Rtu56lb3SXvU6XIz1cn/APo9P2f/APZ//wD6wz/j+ju/CNCFvw5YQprlTpRm/WTy/wByQI/w3Qhb8PWCKyo0YzfzLmf3JA9Xm/8AzZf8vTj/ABAHnqAAAAAAAAAAcH9o22U9St7pL3q1Llk/FF/9noPtG2ynqVvdJe9Wpcsn4ov/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APZ6fs/4P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAAAAAAP/Z';
+            const avatar2_b64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAHgAeAMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAABQYDBAcCAf/EADUQAAIBAwMCAwYEBwAAAAAAAAABAgMEEQUhBhIxQVFhcRMiMoGRobHB0eHwFDNCUvEHYnL/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAgMEAQUG/8QAIhEBAQACAgICAgMAAAAAAAAAAAECAxEEEiExQRNRYSIy/9oADAMBAAIRAxEAPwDuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHjWqwpU5VKklGEU5Sk+iSA9gct4g8Z6jWqSo2UnRovK54/FL/h9C34d4Jv9WcalZOhQe7qSWG/wAPU6fT4fLlye2vj+sM8+THH2dJz3h/wAY9RoVI0r1p16LwuZ/FH/n1Oq21eFzQp16TzCpFSi/Q9Xm8Pl4s+2vj+s8ceTHL2egAeeoAAAAAAAAAABH+I9zK04fvpweJyjyw9JS0X8kgeKPGlW9vJWVnNqjCXK5ReOfLq/Q6LwZ4OpWdOF5fQVS4ksxhJZVP09X6nO/Z/tY17+pdVI80aC5Y36yfX8j0Y+j4vD48c+T92X+sc8s5z2x6egA8tQAAAAAAADg/tE3bnqVvbJ+7Tpc7Xq5P/wD0O8HkvtF25alRupP3alLkT9VF/wD2en7P+D/AP8A+sM/4/o7vwjQhb8OWEKa5U6UZv1k8v8AUnCP8N0IW/D1hCmso0ozfrJc39yQPV5v/wA2X/L04/xAAHnoAAAAAAAAAAcH9o22U9St7pL3q1LlZ6uL/wDsz0H2jbZT1K3ukverUuVnq4v/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APo9P2f8/wDZ//APLDH+P6O78I15XHDlhUnvKlGMH6xXL/AGJBH+Gq8rfh6whUeXGlGD9Yrm/uSB4vN/8Amy/5enH+IAA89QAAAAAAAAADg/tG27nqVvdJe9TpcjPVyf8A/o7weS+0bbuepW90l71OlyM9XJ//AOj0/Z//ANn/AP8ArDP+P6O78I0IW/DlhCmuVOkZvrJ5f7kkR/huhC34esIU1lRozm/WS5n9yQPV5v/AM2X/L04/wAQB56gAAAAAAAAAHB/aNtlPUre6S96tS5Gerj/APsz0H2jbZT1K3ukverUuVnq4v8A+zvB5L7RtsnqVG6k/dqUuRP1UX/9np+z/wD7P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAOD+0bbuepW90l71OlyM9XJ//AOjvB5L7Rtu56lb3SXvU6XIz1cn/APo9P2f/APZ//wD6wz/j+ju/CNCFvw5YQprlTpRm/WTy/wByQI/w3Qhb8PWCKyo0YzfzLmf3JA9Xm/8AzZf8vTj/ABAHnqAAAAAAAAAAcH9o22U9St7pL3q1Llk/FF/9noPtG2ynqVvdJe9Wpcsn4ov/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APZ6fs/4P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAAAAAAP/Z';
+            const avatar3_b64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAHgAeAMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAABQYDBAcCAf/EADUQAAIBAwICBwYGAwAAAAAAAAABAgMEEQUhBhIxQVFhcRMiMoGRobHB0eHwFDNCUvEHYnL/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAgMEAQUG/8QAIhEBAQACAgICAgMAAAAAAAAAAAECAxEEEiExQRNRYSIy/9oADAMBAAIRAxEAPwDuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHjWqwpU5VKklGEU5Sk+iSA9gct4g8Z6jWqSo2UnRovK54/FL/h9C34d4Jv9WcalZOhQe7qSWG/wAPU6fT4fLlye2vj+sM8+THH2dJz3h/wAY9RoVI0r1p16LwuZ/FH/n1Oq21eFzQp16TzCpFSi/Q9Xm8Pl4s+2vj+s8ceTHL2egAeeoAAAAAAAAAABH+I9zK04fvpweJyjyw9JS0X8kgeKPGlW9vJWVnNqjCXK5ReOfLq/Q6LwZ4OpWdOF5fQVS4ksxhJZVP09X6nO/Z/tY17+pdVI80aC5Y36yfX8j0Y+j4vD48c+T92X+sc8s5z2x6egA8tQAAAAAAADg/tE3bnqVvbJ+7Tpc7Xq5P/wD0O8HkvtF25alRupP3alLkT9VF/wD2en7P+D/AP8A+sM/4/o7vwjQhb8OWEKa5U6UZv1k8v8AUnCP8N0IW/D1hCmso0ozfrJc39yQPV5v/wA2X/L04/xAAHnoAAAAAAAAAAcH9o22U9St7pL3q1LlZ6uL/wDsz0H2jbZT1K3ukverUuVnq4v/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APo9P2f8/wDZ//APLDH+P6O78I15XHDlhUnvKlGMH6xXL/AGJBH+Gq8rfh6whUeXGlGD9Yrm/uSB4vN/8Amy/5enH+IAA89QAAAAAAAAADg/tG27nqVvdJe9TpcjPVyf8A/o7weS+0bbuepW90l71OlyM9XJ//AOj0/Z//ANn/AP8ArDP+P6O78I0IW/DlhCmuVOkZvrJ5f7kkR/huhC34esIU1lRozm/WS5n9yQPV5v/AM2X/L04/wAQB56gAAAAAAAAAHB/aNtlPUre6S96tS5Gerj/APsz0H2jbZT1K3ukverUuVnq4v8A+zvB5L7RtsnqVG6k/dqUuRP1UX/9np+z/wD7P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAOD+0bbuepW90l71OlyM9XJ//AOjvB5L7Rtu56lb3SXvU6XIz1cn/APo9P2f/APZ//wD6wz/j+ju/CNCFvw5YQprlTpRm/WTy/wByQI/w3Qhb8PWCKyo0YzfzLmf3JA9Xm/8AzZf8vTj/ABAHnqAAAAAAAAAAcH9o22U9St7pL3q1Llk/FF/9noPtG2ynqVvdJe9Wpcsn4ov/AOzvB5L7RtsnqVG6k/dqUuRP1UX/APZ6fs/4P/8A8sMf4/o7vwjXlccsKk95Uoxg/WK5f7EgR/hrryt+HrCFR5caUYP1iub+5IHi83/5sv8Al6cf4gADz1AAAAAAAAAAAAAAAP/Z';
             const image_b64 = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
             state = { chatTitle: '摸鱼小组 (3)', selfUserId: user1Id, users: [ { id: user1Id, nickname: '我', avatar: avatar1_b64 }, { id: user2Id, nickname: '李静', avatar: avatar2_b64 }, { id: user3Id, nickname: '张伟', avatar: avatar3_b64 } ], messages: [ {id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '谁懂啊家人们，又被抓去开会了...[裂开]', isCollapsed: true}, {id: generateId(), type: 'message', userId: user2Id, contentType: 'image', content: image_b64, isCollapsed: true}, {id: generateId(), type: 'timestamp', content: '14:05', isCollapsed: true}, {id: generateId(), type: 'message', userId: user1Id, contentType: 'text', content: '中午吃啥？[让我看看]', isCollapsed: true}, {id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '螺蛳粉！[胜利]', isCollapsed: true}, ] };
             dom.chatTitleEditor.value = state.chatTitle;
