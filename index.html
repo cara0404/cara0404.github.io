@@ -115,15 +115,14 @@
         .message-item .avatar { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
 
 
-.message-content {
-    max-width: 70%;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    /* ✨ 新增下面这两行魔法代码！ ✨ */
-    width: -moz-fit-content; /* 兼容一下老浏览器 */
-    width: fit-content;      /* 核心！让容器宽度自适应内容！ */
-}
+        .message-content {
+            max-width: 70%;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: -moz-fit-content;
+            width: fit-content;
+        }
 
         .message-group-for-image { display: flex; flex-direction: column; align-items: flex-start; }
         .nickname { font-size: 12px; color: #888; margin-bottom: 4px; }
@@ -193,9 +192,15 @@
         .message-editor-body {
             padding: 15px 10px 5px 10px; border: 1px solid var(--border-color);
             border-top: none; border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px; overflow: hidden;
+            border-bottom-right-radius: 6px;
+            /* ✨ BUG终极修复 第1步: 默认还是藏起来，保持动画效果 ✨ */
+            overflow: hidden;
             transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out, border 0.35s ease-in-out;
             max-height: 500px;
+        }
+        /* ✨ BUG终极修复 第2步: 新增一个class，当有这个class时，就解除“隐藏”的封印 ✨ */
+        .message-editor-body.overflow-visible {
+            overflow: visible;
         }
         .message-item-editor.collapsed .message-editor-body {
             max-height: 0; padding-top: 0; padding-bottom: 0; border: none;
@@ -252,7 +257,9 @@
         .emoji-picker {
             display: none;
             position: absolute;
-            bottom: 100%;
+            /* 还是让它在下面弹出 */
+            top: 100%;
+            margin-top: 5px;
             right: 0;
             width: 300px;
             height: 200px;
@@ -355,7 +362,6 @@
             return acc;
         }, {});
 
-        // ✨✨✨ 第二个修改点在这里！换头像！✨✨✨
         const DEFAULT_AVATAR = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
         const DEFAULT_IMAGE_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2NjYyIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1tGluZWpvaW49InJvdW5kIj48cmVjdIHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiPjwvY2lyY2xlPjxwb2x5bGluZSBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEiPjwvcG9seWxpbmU+PC9zdmc+';
 
@@ -661,13 +667,24 @@
             const item = state.messages.find(m => m.id === itemEditor.dataset.itemId);
             if (!item) return;
 
+            // ✨ BUG终极修复 第3步: 在点击表情按钮时，施展“魔法” ✨
             if (e.target.classList.contains('emoji-btn')) {
                 const picker = itemEditor.querySelector('.emoji-picker');
                 if (!picker) return;
+                const editorBody = itemEditor.querySelector('.message-editor-body');
                 const isCurrentlyOpen = picker.classList.contains('show');
-                document.querySelectorAll('.emoji-picker.show').forEach(p => p.classList.remove('show'));
+
+                // 先把所有已经打开的表情框和它们的“魔法”都关掉
+                document.querySelectorAll('.emoji-picker.show').forEach(p => {
+                    p.classList.remove('show');
+                    const body = p.closest('.message-editor-body');
+                    if (body) body.classList.remove('overflow-visible');
+                });
+
+                // 如果当前这个本来是关的，那就打开它，并给它爹加上“魔法”
                 if (!isCurrentlyOpen) {
                     picker.classList.add('show');
+                    if (editorBody) editorBody.classList.add('overflow-visible');
                 }
                 return;
             }
@@ -703,18 +720,21 @@
             }
         });
         
+        // ✨ BUG终极修复 第4步: 在点击页面其他地方时，解除所有“魔法” ✨
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.emoji-btn') && !e.target.closest('.emoji-picker')) {
                 document.querySelectorAll('.emoji-picker.show').forEach(picker => {
                     picker.classList.remove('show');
+                    const editorBody = picker.closest('.message-editor-body');
+                    if (editorBody) {
+                        editorBody.classList.remove('overflow-visible');
+                    }
                 });
             }
         });
         
         dom.fillExampleBtn.addEventListener('click', () => {
             const user1Id = generateId(), user2Id = generateId(), user3Id = generateId();
-// ✨ 把上面那三行超长的代码，替换成下面这三行 ✨
-
             const avatar1_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
             const avatar2_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
             const avatar3_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
