@@ -8,15 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
-            /* ✨✨✨ 本次升级点 ① (确认聊天背景颜色) ✨✨✨ */
-            /* 你要的聊天背景色 #ededed 已经在这里设置好了，就是这个 --wechat-bg 变量。 */
             --wechat-bg: #ededed;
             --primary-color: #07c160;
             --border-color: #e0e0e0;
             --editor-bg: #f7f7f7;
             --font-color: #333;
-            /* ✨✨✨ 本次升级点 ② (修改绿色气泡颜色) ✨✨✨ */
-            /* 把原来的 #a9e87a 换成你想要的 #95ec69 就行啦！ */
             --bubble-green: #95ec69;
             --bubble-white: #ffffff;
             --timestamp-color: #a0a0a0;
@@ -676,13 +672,20 @@
             });
         }
         
-        function renderPreview() {
+        // ✨✨✨ 本次升级点 ① (升级renderPreview函数) ✨✨✨
+        // 我们给函数加一个参数 `itemIdToFocus`，默认是 null。
+        function renderPreview(itemIdToFocus = null) {
             dom.chatTitlePreview.textContent = state.chatTitle || '聊天标题';
             dom.chatMessagesContainer.innerHTML = '';
             const messagesWrapper = document.createElement('div');
             messagesWrapper.id = 'messages-content-wrapper';
             state.messages.forEach(item => {
                 const previewItemDiv = document.createElement('div');
+                
+                // ✨✨✨ 本次升级点 ② (给预览区的消息“贴标签”) ✨✨✨
+                // 就是这里！我们把消息的ID作为 `data-item-id` 属性加到HTML元素上。
+                previewItemDiv.dataset.itemId = item.id;
+
                 if(item.type === 'message') {
                     const user = state.users.find(u => u.id === item.userId);
                     if (!user) return;
@@ -727,7 +730,22 @@
                 messagesWrapper.appendChild(previewItemDiv);
             });
             dom.chatMessagesContainer.appendChild(messagesWrapper);
-            dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
+
+            // ✨✨✨ 本次升级点 ③ (实现智能滚动逻辑) ✨✨✨
+            // 把原来那句简单的滚动到底部，换成下面这段有判断的逻辑。
+            if (itemIdToFocus) {
+                const targetElement = messagesWrapper.querySelector(`[data-item-id="${itemIdToFocus}"]`);
+                if (targetElement) {
+                    // 找到目标元素，就把它平滑地滚动到视野中央。
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    // 如果没找到（一般不会发生），还是滚到底部。
+                    dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
+                }
+            } else {
+                // 如果没有指定目标ID，就默认滚到底部，保持添加新消息时的好习惯。
+                dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
+            }
         }
 
         dom.exportPresetsBtn.addEventListener('click', () => {
@@ -941,20 +959,32 @@
 
             if (target.classList.contains('message-image-file-input') && target.files && target.files[0]) {
                 const reader = new FileReader();
-                reader.onload = (event) => { item.content = event.target.result; renderMessagesEditor(); renderPreview(); };
+                reader.onload = (event) => { 
+                    item.content = event.target.result; 
+                    renderMessagesEditor(); 
+                    // ✨✨✨ 本次升级点 ④ (在各种编辑操作后触发智能滚动) ✨✨✨
+                    // 在这里，当图片上传完成并更新后，我们调用 renderPreview 并传入当前项的ID。
+                    renderPreview(item.id); 
+                };
                 reader.readAsDataURL(target.files[0]);
                 return;
             }
             if (target.tagName === 'SELECT') {
                 renderMessagesEditor();
             }
-            renderPreview();
+            // ✨✨✨ 本次升级点 ④ (在各种编辑操作后触发智能滚动) ✨✨✨
+            // 比如切换发送人、消息类型、是否显示转录等操作，都会触发这里的智能滚动。
+            renderPreview(item.id);
         });
         dom.messageListEditor.addEventListener('input', e => {
             const target = e.target; const itemDiv = target.closest('.message-item-editor'); if (!itemDiv) return;
             const item = state.messages.find(m => m.id === itemDiv.dataset.itemId); if (!item) return;
             if (target.classList.contains('content-textarea') || target.classList.contains('timestamp-input')) { item.content = target.value; }
-            renderPreview();
+            
+            // ✨✨✨ 本次升级点 ④ (在各种编辑操作后触发智能滚动) ✨✨✨
+            // 这是最常用的地方：当你在输入框里打字时，实时触发智能滚动。
+            renderPreview(item.id);
+
             const summarySpan = itemDiv.querySelector('.message-editor-summary');
             
             if (summarySpan && item.type === 'message') {
@@ -1015,6 +1045,7 @@
                     activeTextarea.value = text.substring(0, start) + code + text.substring(end);
                     activeTextarea.focus();
                     activeTextarea.selectionStart = activeTextarea.selectionEnd = start + code.length;
+                    // 插入表情后，手动触发input事件，这样就会自动调用我们上面修改过的input监听器，实现智能滚动！
                     activeTextarea.dispatchEvent(new Event('input', { bubbles: true }));
                 }
                 return;
@@ -1036,7 +1067,9 @@
                     }
                     
                     renderMessagesEditor();
-                    renderPreview();
+                    // ✨✨✨ 本次升级点 ④ (在各种编辑操作后触发智能滚动) ✨✨✨
+                    // 复制一条新消息后，我们让预览区滚动到这条“新”消息上，而不是底部。
+                    renderPreview(newItem.id);
                 }
                 return;
             }
@@ -1044,7 +1077,7 @@
             if (e.target.closest('.delete-btn')) {
                 state.messages = state.messages.filter(m => m.id !== item.id);
                 renderMessagesEditor();
-                renderPreview();
+                renderPreview(); // 删除后，让它默认滚动即可
                 return;
             }
             
