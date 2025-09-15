@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>捡手机文学生成器 (v7.0 箭头精调版)</title>
+    <title>捡手机文学生成器 (v7.5 预设功能版)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
@@ -129,38 +129,41 @@
         }
         .message-item .avatar { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
 
-
         .message-content {
             max-width: 70%;
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            width: -moz-fit-content;
-            width: fit-content;
         }
         
         .nickname { font-size: 12px; color: #888; margin-bottom: 4px; }
         
         .message-content .bubble {
-            padding: 10px 12px; border-radius: 6px; position: relative;
-            word-break: break-all; white-space: pre-wrap; line-height: 1.5;
-            width: -moz-fit-content;
-            width: fit-content;
+            padding: 10px 12px;
+            border-radius: 6px;
+            position: relative;
+            word-break: break-word;
+            white-space: pre-wrap;
+            line-height: 20px;
         }
         .received { flex-direction: row; }
-        .received > .message-content { margin-left: 10px; }
+        
+        .received > .message-content { 
+            margin-left: 10px; 
+            align-items: flex-start; 
+        }
+        
         .received .bubble { background-color: var(--bubble-white); color: #000; }
         
-        /* ✨ 修改点: 箭头位置改回固定的 14px */
         .received .bubble::before {
             content: ''; position: absolute; left: -8px; top: 14px;
             width: 0; height: 0; border-style: solid; border-width: 6px 8px 6px 0;
             border-color: transparent var(--bubble-white) transparent transparent;
         }
         .sent { flex-direction: row-reverse; }
+        
         .sent > .message-content { 
             margin-right: 10px; 
-            align-items: flex-end; 
+            align-items: flex-end;
         }
         .sent .bubble { background-color: var(--bubble-green); color: #000; }
         .sent .bubble::before {
@@ -231,11 +234,39 @@
         .message-item-editor.collapsed .message-editor-header {
              border: 1px solid var(--border-color);
         }
-        .message-item-editor .delete-btn {
-            top: 50%; transform: translateY(-50%); right: 10px;
-            background: #ff4d4f; color: white; border: none; border-radius: 50%;
-            width: 20px; height: 20px; cursor: pointer; font-size: 12px;
-            line-height: 20px; text-align: center;
+        .message-editor-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .message-editor-controls button {
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background-color 0.2s;
+        }
+        .message-editor-controls .copy-btn {
+            background-color: #b8c5d0;
+            color: white;
+        }
+        .message-editor-controls .copy-btn:hover {
+            background-color: #98a5b0;
+        }
+        .message-editor-controls .delete-btn {
+            background: #ff4d4f;
+            color: white;
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 22px;
+        }
+        .message-editor-controls .delete-btn:hover {
+            background: #d9363e;
         }
         .drag-handle {
             cursor: grab;
@@ -254,17 +285,15 @@
         .sortable-drag .drag-handle {
             cursor: grabbing;
         }
-
         .wechat-emoji {
             width: 20px;
             height: 20px;
             vertical-align: middle;
         }
         .bubble .wechat-emoji {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
         }
-        
         .emoji-btn {
             cursor: pointer;
             font-size: 20px;
@@ -276,7 +305,6 @@
             align-items: center;
             margin-bottom: 5px;
         }
-        
         .emoji-picker {
             display: none;
             position: absolute;
@@ -309,7 +337,6 @@
         .emoji-picker img:hover {
             background-color: #f0f0f0;
         }
-
         .bubble-voice {
             display: flex;
             align-items: center;
@@ -329,26 +356,19 @@
             height: 20px;
             flex-shrink: 0;
         }
-        
         .transcription-wrapper {
             margin-top: 8px;
         }
-
-        .bubble-transcription {
-            /* 这里保持干净，不加任何额外样式 */
-        }
-        
+        .bubble-transcription { }
         .bubble-transcription::before {
             display: none !important;
         }
-
         .received .bubble-transcription {
             background-color: var(--bubble-white);
         }
         .sent .bubble-transcription {
             background-color: var(--bubble-green);
         }
-
         .checkbox-label {
             display: flex;
             align-items: center;
@@ -357,43 +377,108 @@
             font-weight: normal;
             font-size: 14px;
         }
+        /* ✨✨✨ 升级修改点 ① (新增样式) ✨✨✨
+           这是为新的“预设管理”区域添加的样式，让下拉框和按钮能好看地排成一行。
+        */
+        .preset-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .preset-controls select {
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
     <div class="main-container">
-        <div class="editor-panel"><h1>捡手机文学生成器</h1><p style="margin-top:-5px; font-size: 14px; color: #666;">在这里编辑你的故事，上方实时预览。</p><div class="editor-section"><div class="editor-section-header"><h3>全局设置</h3></div><div class="form-group"><label for="chat-title-editor">聊天标题 (对方昵称/群名称)</label><input type="text" id="chat-title-editor"></div>
-        <div class="action-buttons">
-            <button id="fill-example-btn" class="btn btn-secondary">填充示例</button>
-            <button id="reset-btn" class="btn btn-danger">重置所有</button>
-            <button id="export-long-btn" class="btn btn-primary">导出长截图</button>
-            <button id="export-current-btn" class="btn btn-primary">导出当前页</button>
-        </div>
-        </div><div class="editor-section"><div class="editor-section-header"><h3>聊天用户管理</h3></div><div id="user-profiles-editor"></div><div class="action-buttons"><button id="add-user-btn" class="btn btn-primary">添加用户</button></div></div>
-        
-        <div class="editor-section">
-            <div class="editor-section-header">
-                <h3>聊天记录编辑</h3>
-                <button id="clear-messages-btn" class="btn btn-danger btn-sm">清空聊天记录</button>
+        <div class="editor-panel">
+            <h1>捡手机文学生成器</h1>
+            <p style="margin-top:-5px; font-size: 14px; color: #666;">在这里编辑你的故事，右侧实时预览。</p>
+            
+            <!-- ✨✨✨ 升级修改点 ② (新增HTML) ✨✨✨
+                 我们在这里插入了全新的“预设管理”面板。
+                 它包含一个下拉选择框(select)和两个按钮(保存/删除)。
+            -->
+            <div class="editor-section">
+                <div class="editor-section-header">
+                    <h3>预设管理</h3>
+                </div>
+                <div class="form-group">
+                    <label for="preset-selector">加载/管理预设</label>
+                    <div class="preset-controls">
+                        <select id="preset-selector">
+                            <option value="">-- 选择一个预设 --</option>
+                        </select>
+                        <button id="save-preset-btn" class="btn btn-primary btn-sm" title="将当前的标题和用户保存为新预设">保存</button>
+                        <button id="delete-preset-btn" class="btn btn-danger btn-sm" title="删除选中的预设">删除</button>
+                    </div>
+                </div>
             </div>
-            <div id="message-list-editor"></div>
-            <div class="action-buttons">
-                <button id="add-self-message-btn" class="btn btn-primary">添加我的消息</button>
-                <button id="add-other-message-btn" class="btn btn-primary" style="background-color: #555;">添加对方消息</button>
-                <button id="add-timestamp-btn" class="btn btn-secondary">添加时间戳</button>
+
+            <div class="editor-section">
+                <div class="editor-section-header">
+                    <h3>全局设置</h3>
+                </div>
+                <div class="form-group">
+                    <label for="chat-title-editor">聊天标题 (对方昵称/群名称)</label>
+                    <input type="text" id="chat-title-editor">
+                </div>
+                <div class="action-buttons">
+                    <button id="fill-example-btn" class="btn btn-secondary">填充示例</button>
+                    <button id="reset-btn" class="btn btn-danger">重置所有</button>
+                    <button id="export-long-btn" class="btn btn-primary">导出长截图</button>
+                    <button id="export-current-btn" class="btn btn-primary">导出当前页</button>
+                </div>
+            </div>
+            <div class="editor-section">
+                <div class="editor-section-header">
+                    <h3>聊天用户管理</h3>
+                </div>
+                <div id="user-profiles-editor"></div>
+                <div class="action-buttons">
+                    <button id="add-user-btn" class="btn btn-primary">添加用户</button>
+                </div>
+            </div>
+            
+            <div class="editor-section">
+                <div class="editor-section-header">
+                    <h3>聊天记录编辑</h3>
+                    <button id="clear-messages-btn" class="btn btn-danger btn-sm">清空聊天记录</button>
+                </div>
+                <div id="message-list-editor"></div>
+                <div class="action-buttons">
+                    <button id="add-self-message-btn" class="btn btn-primary">添加我的消息</button>
+                    <button id="add-other-message-btn" class="btn btn-primary" style="background-color: #555;">添加对方消息</button>
+                    <button id="add-timestamp-btn" class="btn btn-secondary">添加时间戳</button>
+                </div>
             </div>
         </div>
-    </div>
-        <div class="preview-panel"><div class="phone-frame" id="capture-area"><div class="chat-header"><div class="back-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: black;"><polyline points="15 18 9 12 15 6"></polyline></svg></div><span class="chat-title-preview-text" id="chat-title-preview">聊天标题</span><div class="more-options-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: black;"><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="12" r="2"/></svg></div></div><div class="chat-messages" id="chat-messages-container"></div><div class="chat-footer"><svg class="voice-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,14c1.66,0,3-1.34,3-3V5c0-1.66-1.34-3-3-3S9,3.34,9,5v6C9,12.66,10.34,14,12,14z M17.3,11c0,3-2.54,5.1-5.3,5.1S6.7,14,6.7,11H5c0,3.41,2.72,6.23,6,6.72V21h2v-3.28c3.28-0.49,6-3.31,6-6.72H17.3z"></path></svg><div class="text-input-mock"></div><svg class="emoji-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99,2C6.47,2,2,6.48,2,12s4.47,10,9.99,10C17.52,22,22,17.52,22,12S17.52,2,11.99,2z M12,20c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S16.42,20,12,20z M15.5,11c0.83,0,1.5-0.67,1.5-1.5S16.33,8,15.5,8S14,8.67,14,9.5S14.67,11,15.5,11z M8.5,11c0.83,0,1.5-0.67,1.5-1.5S9.33,8,8.5,8S7,8.67,7,9.5S7.67,11,8.5,11z M12,17.5c2.33,0,4.31-1.46,5.11-3.5H6.89C7.69,16.04,9.67,17.5,12,17.5z"></path></svg><svg class="plus-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z"></path></svg></div></div></div>
+        <div class="preview-panel">
+            <div class="phone-frame" id="capture-area">
+                <div class="chat-header">
+                    <div class="back-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: black;"><polyline points="15 18 9 12 15 6"></polyline></svg></div>
+                    <span class="chat-title-preview-text" id="chat-title-preview">聊天标题</span>
+                    <div class="more-options-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: black;"><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="12" r="2"/></svg></div>
+                </div>
+                <div class="chat-messages" id="chat-messages-container"></div>
+                <div class="chat-footer">
+                    <svg class="voice-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,14c1.66,0,3-1.34,3-3V5c0-1.66-1.34-3-3-3S9,3.34,9,5v6C9,12.66,10.34,14,12,14z M17.3,11c0,3-2.54,5.1-5.3,5.1S6.7,14,6.7,11H5c0,3.41,2.72,6.23,6,6.72V21h2v-3.28c3.28-0.49,6-3.31,6-6.72H17.3z"></path></svg>
+                    <div class="text-input-mock"></div>
+                    <svg class="emoji-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99,2C6.47,2,2,6.48,2,12s4.47,10,9.99,10C17.52,22,22,17.52,22,12S17.52,2,11.99,2z M12,20c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S16.42,20,12,20z M15.5,11c0.83,0,1.5-0.67,1.5-1.5S16.33,8,15.5,8S14,8.67,14,9.5S14.67,11,15.5,11z M8.5,11c0.83,0,1.5-0.67,1.5-1.5S9.33,8,8.5,8S7,8.67,7,9.5S7.67,11,8.5,11z M12,17.5c2.33,0,4.31-1.46,5.11-3.5H6.89C7.69,16.04,9.67,17.5,12,17.5z"></path></svg>
+                    <svg class="plus-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z"></path></svg>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script>
-    // JavaScript 部分没有改动，所以可以保持原样
     document.addEventListener('DOMContentLoaded', () => {
         const SVG_VOICE_RECEIVED = `<svg class="voice-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6" cy="12" r="2" fill="currentColor"/><path d="M10.5 7C12.5 9 12.5 15 10.5 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M14.5 3C18.5 7 18.5 17 14.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
         const SVG_VOICE_SENT = `<svg class="voice-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="12" r="2" fill="currentColor"/><path d="M13.5 7C11.5 9 11.5 15 13.5 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M9.5 3C5.5 7 5.5 17 9.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
 
         const WECHAT_EMOJIS = [
-            {"name":"[微笑]","url":"https://i.postimg.cc/wTZ1JhZX/image.png"},{"name":"[撇嘴]","url":"https://i.postimg.cc/3N9gYdxL/image.png"},{"name":"[色]","url":"https://i.postimg.cc/4y49LsQp/image.png"},{"name":"[发呆]","url":"https://i.postimg.cc/Nf137tPd/image.png"},{"name":"[得意]","url":"https://i.postimg.cc/Ss3BVxhv/image.png"},{"name":"[流泪]","url":"https://i.postimg.cc/Y9KNx5Px/image.png"},{"name":"[害羞]","url":"https://i.postimg.cc/7PzdwDDq/image.png"},{"name":"[闭嘴]","url":"https://i.postimg.cc/4nCWHKgX/image.png"},{"name":"[睡]","url":"https://i.postimg.cc/MGkjkyY6/image.png"},{"name":"[大哭]","url":"https://i.postimg.cc/yNQ4gTrB/image.png"},{"name":"[尴尬]","url":"https://i.postimg.cc/4d7MKR9b/image.png"},{"name":"[发怒]","url":"https://i.postimg.cc/jStGM1pt/image.png"},{"name":"[调皮]","url":"https://i.postimg.cc/zDRZvKwZ/image.png"},{"name":"[呲牙]","url":"https://i.postimg.cc/K85yFbP1/image.png"},{"name":"[惊讶]","url":"https://i.postimg.cc/tC5r44cG/image.png"},{"name":"[难过]","url":"https://i.postimg.cc/0j9pTpPM/image.png"},{"name":"[囧]","url":"https://i.postimg.cc/L88xYMdY/image.png"},{"name":"[抓狂]","url":"https://i.postimg.cc/V5QcsLZC/image.png"},{"name":"[吐]","url":"https://i.postimg.cc/XY5pgr6T/image.png"},{"name":"[偷笑]","url":"https://i.postimg.cc/PJFPSZxk/image.png"},{"name":"[愉快]","url":"https://i.postimg.cc/SQ5Stmdq/image.png"},{"name":"[白眼]","url":"https://i.postimg.cc/JhRdQBBn/image.png"},{"name":"[傲慢]","url":"https://i.postimg.cc/BnTVDCbk/image.png"},{"name":"[困]","url":"https://i.postimg.cc/ZKTc2h57/image.png"},{"name":"[惊恐]","url":"https://i.postimg.cc/9FV827JB/image.png"},{"name":"[流汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[憨笑]","url":"https://i.postimg.cc/28fJ5J8h/image.png"},{"name":"[悠闲]","url":"https://i.postimg.cc/wMS9tkM3/image.png"},{"name":"[奋斗]","url":"https://i.postimg.cc/MTV526B4/image.png"},{"name":"[咒骂]","url":"https://i.postimg.cc/fbwD0yz7/image.png"},{"name":"[疑问]","url":"https://i.postimg.cc/ZqcYf37D/image.png"},{"name":"[嘘]","url":"https://i.postimg.cc/pXwdyP5k/image.png"},{"name":"[晕]","url":"https://i.postimg.cc/mgWbBVK5/image.png"},{"name":"[衰]","url":"https://i.postimg.cc/4xHhF8V2/image.png"},{"name":"[骷髅]","url":"https://i.postimg.cc/qqrLpPX7/image.png"},{"name":"[敲打]","url":"https://i.postimg.cc/L6CzWY75/image.png"},{"name":"[再见]","url":"https://i.postimg.cc/t4d9TWjC/image.png"},{"name":"[擦汗]","url":"https://i.postimg.cc/kXKm1KDF/image.png"},{"name":"[抠鼻]","url":"https://i.postimg.cc/MTV526B4/image.png"},{"name":"[鼓掌]","url":"https://i.postimg.cc/3N2cBj9k/image.png"},{"name":"[坏笑]","url":"https://i.postimg.cc/mDHXL3vm/image.png"},{"name":"[左哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[右哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[哈欠]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[鄙视]","url":"https://i.postimg.cc/6q4HQrFH/image.png"},{"name":"[委屈]","url":"https://i.postimg.cc/tTqJyDnj/image.png"},{"name":"[快哭了]","url":"https://i.postimg.cc/HW0z6Ld8/image.png"},{"name":"[阴险]","url":"https://i.postimg.cc/rmwV7m7y/image.png"},{"name":"[亲亲]","url":"https://i.postimg.cc/8z7hgkQH/image.png"},{"name":"[可怜]","url":"https://i.postimg.cc/QMBSmkdj/image.png"},{"name":"[菜刀]","url":"https://i.postimg.cc/pVgvJqVL/image.png"},{"name":"[西瓜]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},{"name":"[啤酒]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},{"name":"[咖啡]","url":"https://i.postimg.cc/3xfn2b7L/image.png"},{"name":"[猪头]","url":"https://i.postimg.cc/sxZrRZmz/image.png"},{"name":"[玫瑰]","url":"https://i.postimg.cc/mgkSZNM7/image.png"},{"name":"[凋谢]","url":"https://i.postimg.cc/L5PrWF46/image.png"},{"name":"[嘴唇]","url":"https://i.postimg.cc/zDLbftPz/image.png"},{"name":"[爱心]","url":"https://i.postimg.cc/52dr6r48/image.png"},{"name":"[心碎]","url":"https://i.postimg.cc/L6YXHJ5n/image.png"},{"name":"[蛋糕]","url":"https://i.postimg.cc/LXJdzZrP/image.png"},{"name":"[闪电]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[炸弹]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[便便]","url":"https://i.postimg.cc/9X4V9vhk/image.png"},{"name":"[月亮]","url":"https://i.postimg.cc/qM3kPWDK/image.png"},{"name":"[太阳]","url":"https://i.postimg.cc/W4Mqsh9M/image.png"},{"name":"[拥抱]","url":"https://i.postimg.cc/76tH44y3/image.png"},{"name":"[强]","url":"https://i.postimg.cc/c44RTMFP/image.png"},{"name":"[弱]","url":"https://i.postimg.cc/wvpJNhtf/image.png"},{"name":"[握手]","url":"https://i.postimg.cc/0QVQNm7J/image.png"},{"name":"[胜利]","url":"https://i.postimg.cc/3NLDzVtV/image.png"},{"name":"[抱拳]","url":"https://i.postimg.cc/wvvfC82Y/image.png"},{"name":"[勾引]","url":"https://i.postimg.cc/ZRGQpsPk/image.png"},{"name":"[拳头]","url":"https://i.postimg.cc/PqZYN6qv/image.png"},{"name":"[OK]","url":"https://i.postimg.cc/vH6j8ysQ/OK.png"},{"name":"[跳跳]","url":"https://i.postimg.cc/sXmBZbCx/image.png"},{"name":"[发抖]","url":"https://i.postimg.cc/jd0V72vW/image.png"},{"name":"[怄火]","url":"https://i.postimg.cc/jd0V72vW/image.png"},{"name":"[转圈]","url":"https://i.postimg.cc/Px7jcMmK/image.png"},{"name":"[嘿哈]","url":"https://i.postimg.cc/nLMS5f0b/image.png"},{"name":"[捂脸]","url":"https://i.postimg.cc/2yJSQDck/image.png"},{"name":"[奸笑]","url":"https://i.postimg.cc/3Njtp8Jp/image.png"},{"name":"[机智]","url":"https://i.postimg.cc/hvRCfzgc/image.png"},{"name":"[皱眉]","url":"https://i.postimg.cc/cHCWXz8r/image.png"},{"name":"[耶]","url":"https://i.postimg.cc/FKmsgGZL/image.png"},{"name":"[红包]","url":"https://i.postimg.cc/JhgYCY2y/image.png"},{"name":"[吃瓜]","url":"https://i.postimg.cc/Bn3GdbKW/image.png"},{"name":"[加油]","url":"https://i.postimg.cc/ry5n7JCm/image.png"},{"name":"[汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[天啊]","url":"https://i.postimg.cc/mkrP3VTw/image.png"},{"name":"[Emm]","url":"https://i.postimg.cc/CM2XV19P/Emm.png"},{"name":"[社会社会]","url":"https://i.postimg.cc/HsxMbWxg/image.png"},{"name":"[旺柴]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[好的]","url":"https://i.postimg.cc/CxhQGq8K/image.png"},{"name":"[哇]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[打脸]","url":"https://i.postimg.cc/ZqKz5QHV/image.png"},{"name":"[裂开]","url":"https://i.postimg.cc/FKJg3rTR/image.png"},{"name":"[doge]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[惊喜]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[让我看看]","url":"https://i.postimg.cc/1trFrfw9/image.png"},{"name":"[叹气]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[苦涩]","url":"https://i.postimg.cc/8cbbcZtm/image.png"},{"name":"[翻白眼]","url":"https://i.postimg.cc/tgg8jxRc/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"},{"name":"[合十]","url":"https://i.postimg.cc/VkKHDk9W/image.png"},{"name":"[失望]","url":"https://i.postimg.cc/DyMX6VJb/image.png"},{"name":"[庆祝]","url":"https://i.postimg.cc/Qdvc8Ljr/image.png"},{"name":"[恐惧]","url":"https://i.postimg.cc/6QDcm28n/image.png"},{"name":"[无语]","url":"https://i.postimg.cc/Gt9pT2jg/image.png"},{"name":"[烟花]","url":"https://i.postimg.cc/bw1wt4QP/image.png"},{"name":"[爆竹]","url":"https://i.postimg.cc/V6VG1GZr/image.png"},{"name":"[生病]","url":"https://i.postimg.cc/XNxFZBnL/image.png"},{"name":"[發]","url":"https://i.postimg.cc/0ynhFfvm/image.png"},{"name":"[破涕为笑]","url":"https://i.postimg.cc/BZC5xwBx/image.png"},{"name":"[礼物]","url":"https://i.postimg.cc/rFQJLYd8/image.png"},{"name":"[福]","url":"https://i.postimg.cc/zfP6XGVG/image.png"},{"name":"[笑脸]","url":"https://i.postimg.cc/05HjRY8T/image.png"},{"name":"[脸红]","url":"https://i.postimg.cc/sgL4MQ9q/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"}
+            {"name":"[微笑]","url":"https://i.postimg.cc/wTZ1JhZX/image.png"},{"name":"[撇嘴]","url":"https://i.postimg.cc/3N9gYdxL/image.png"},{"name":"[色]","url":"https://i.postimg.cc/4y49LsQp/image.png"},{"name":"[发呆]","url":"https://i.postimg.cc/Nf137tPd/image.png"},{"name":"[得意]","url":"https://i.postimg.cc/Ss3BVxhv/image.png"},{"name":"[流泪]","url":"https://i.postimg.cc/Y9KNx5Px/image.png"},{"name":"[害羞]","url":"https://i.postimg.cc/7PzdwDDq/image.png"},{"name":"[闭嘴]","url":"https://i.postimg.cc/4nCWHKgX/image.png"},{"name":"[睡]","url":"https://i.postimg.cc/MGkjkyY6/image.png"},{"name":"[大哭]","url":"https://i.postimg.cc/yNQ4gTrB/image.png"},{"name":"[尴尬]","url":"https://i.postimg.cc/4d7MKR9b/image.png"},{"name":"[发怒]","url":"https://i.postimg.cc/jStGM1pt/image.png"},{"name":"[调皮]","url":"https://i.postimg.cc/zDRZvKwZ/image.png"},{"name":"[呲牙]","url":"https://i.postimg.cc/K85yFbP1/image.png"},{"name":"[惊讶]","url":"https://i.postimg.cc/tC5r44cG/image.png"},{"name":"[难过]","url":"https://i.postimg.cc/0j9pTpPM/image.png"},{"name":"[囧]","url":"https://i.postimg.cc/L88xYMdY/image.png"},{"name":"[抓狂]","url":"https://i.postimg.cc/V5QcsLZC/image.png"},{"name":"[吐]","url":"https://i.postimg.cc/XY5pgr6T/image.png"},{"name":"[偷笑]","url":"https://i.postimg.cc/PJFPSZxk/image.png"},{"name":"[愉快]","url":"https://i.postimg.cc/SQ5Stmdq/image.png"},{"name":"[白眼]","url":"https://i.postimg.cc/JhRdQBBn/image.png"},{"name":"[傲慢]","url":"https://i.postimg.cc/BnTVDCbk/image.png"},{"name":"[困]","url":"https://i.postimg.cc/ZKTc2h57/image.png"},{"name":"[惊恐]","url":"https://i.postimg.cc/9FV827JB/image.png"},{"name":"[流汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[憨笑]","url":"https://i.postimg.cc/28fJ5J8h/image.png"},{"name":"[悠闲]","url":"https://i.postimg.cc/wMS9tkM3/image.png"},{"name":"[咒骂]","url":"https://i.postimg.cc/fbwD0yz7/image.png"},{"name":"[疑问]","url":"https://i.postimg.cc/ZqcYf37D/image.png"},{"name":"[嘘]","url":"https://i.postimg.cc/pXwdyP5k/image.png"},{"name":"[晕]","url":"https://i.postimg.cc/mgWbBVK5/image.png"},{"name":"[衰]","url":"https://i.postimg.cc/4xHhF8V2/image.png"},{"name":"[骷髅]","url":"https://i.postimg.cc/qqrLpPX7/image.png"},{"name":"[敲打]","url":"https://i.postimg.cc/L6CzWY75/image.png"},{"name":"[再见]","url":"https://i.postimg.cc/t4d9TWjC/image.png"},{"name":"[擦汗]","url":"https://i.postimg.cc/kXKm1KDF/image.png"},{"name":"[抠鼻]","url":"https://i.postimg.cc/MTV526B4/image.png"},{"name":"[鼓掌]","url":"https://i.postimg.cc/3N2cBj9k/image.png"},{"name":"[坏笑]","url":"https://i.postimg.cc/mDHXL3vm/image.png"},{"name":"[左哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[右哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[哈欠]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[鄙视]","url":"https://i.postimg.cc/6q4HQrFH/image.png"},{"name":"[委屈]","url":"https://i.postimg.cc/tTqJyDnj/image.png"},{"name":"[快哭了]","url":"https://i.postimg.cc/HW0z6Ld8/image.png"},{"name":"[阴险]","url":"https://i.postimg.cc/rmwV7m7y/image.png"},{"name":"[亲亲]","url":"https://i.postimg.cc/8z7hgkQH/image.png"},{"name":"[可怜]","url":"https://i.postimg.cc/QMBSmkdj/image.png"},{"name":"[菜刀]","url":"https://i.postimg.cc/pVgvJqVL/image.png"},{"name":"[啤酒]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},{"name":"[咖啡]","url":"https://i.postimg.cc/3xfn2b7L/image.png"},{"name":"[猪头]","url":"https://i.postimg.cc/sxZrRZmz/image.png"},{"name":"[玫瑰]","url":"https://i.postimg.cc/mgkSZNM7/image.png"},{"name":"[凋谢]","url":"https://i.postimg.cc/L5PrWF46/image.png"},{"name":"[嘴唇]","url":"https://i.postimg.cc/zDLbftPz/image.png"},{"name":"[爱心]","url":"https://i.postimg.cc/52dr6r48/image.png"},{"name":"[心碎]","url":"https://i.postimg.cc/L6YXHJ5n/image.png"},{"name":"[蛋糕]","url":"https://i.postimg.cc/LXJdzZrP/image.png"},{"name":"[闪电]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[炸弹]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[便便]","url":"https://i.postimg.cc/9X4V9vhk/image.png"},{"name":"[月亮]","url":"https://i.postimg.cc/qM3kPWDK/image.png"},{"name":"[太阳]","url":"https://i.postimg.cc/W4Mqsh9M/image.png"},{"name":"[拥抱]","url":"https://i.postimg.cc/76tH44y3/image.png"},{"name":"[强]","url":"https://i.postimg.cc/c44RTMFP/image.png"},{"name":"[弱]","url":"https://i.postimg.cc/wvpJNhtf/image.png"},{"name":"[握手]","url":"https://i.postimg.cc/0QVQNm7J/image.png"},{"name":"[胜利]","url":"https://i.postimg.cc/3NLDzVtV/image.png"},{"name":"[抱拳]","url":"https://i.postimg.cc/wvvfC82Y/image.png"},{"name":"[勾引]","url":"https://i.postimg.cc/ZRGQpsPk/image.png"},{"name":"[拳头]","url":"https://i.postimg.cc/PqZYN6qv/image.png"},{"name":"[OK]","url":"https://i.postimg.cc/vH6j8ysQ/OK.png"},{"name":"[跳跳]","url":"https://i.postimg.cc/sXmBZbCx/image.png"},{"name":"[发抖]","url":"https://i.postimg.cc/jd0V72vW/image.png"},{"name":"[转圈]","url":"https://i.postimg.cc/Px7jcMmK/image.png"},{"name":"[嘿哈]","url":"https://i.postimg.cc/nLMS5f0b/image.png"},{"name":"[捂脸]","url":"https://i.postimg.cc/2yJSQDck/image.png"},{"name":"[奸笑]","url":"https://i.postimg.cc/3Njtp8Jp/image.png"},{"name":"[机智]","url":"https://i.postimg.cc/hvRCfzgc/image.png"},{"name":"[皱眉]","url":"https://i.postimg.cc/cHCWXz8r/image.png"},{"name":"[耶]","url":"https://i.postimg.cc/FKmsgGZL/image.png"},{"name":"[红包]","url":"https://i.postimg.cc/JhgYCY2y/image.png"},{"name":"[吃瓜]","url":"https://i.postimg.cc/Bn3GdbKW/image.png"},{"name":"[加油]","url":"https://i.postimg.cc/ry5n7JCm/image.png"},{"name":"[汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[天啊]","url":"https://i.postimg.cc/mkrP3VTw/image.png"},{"name":"[Emm]","url":"https://i.postimg.cc/CM2XV19P/Emm.png"},{"name":"[社会社会]","url":"https://i.postimg.cc/HsxMbWxg/image.png"},{"name":"[旺柴]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[好的]","url":"https://i.postimg.cc/CxhQGq8K/image.png"},{"name":"[哇]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[打脸]","url":"https://i.postimg.cc/ZqKz5QHV/image.png"},{"name":"[裂开]","url":"https://i.postimg.cc/FKJg3rTR/image.png"},{"name":"[doge]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[惊喜]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[让我看看]","url":"https://i.postimg.cc/1trFrfw9/image.png"},{"name":"[叹气]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[苦涩]","url":"https://i.postimg.cc/8cbbcZtm/image.png"},{"name":"[翻白眼]","url":"https://i.postimg.cc/tgg8jxRc/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"},{"name":"[合十]","url":"https://i.postimg.cc/VkKHDk9W/image.png"},{"name":"[失望]","url":"https://i.postimg.cc/DyMX6VJb/image.png"},{"name":"[庆祝]","url":"https://i.postimg.cc/Qdvc8Ljr/image.png"},{"name":"[恐惧]","url":"https://i.postimg.cc/6QDcm28n/image.png"},{"name":"[无语]","url":"https://i.postimg.cc/Gt9pT2jg/image.png"},{"name":"[烟花]","url":"https://i.postimg.cc/bw1wt4QP/image.png"},{"name":"[爆竹]","url":"https://i.postimg.cc/V6VG1GZr/image.png"},{"name":"[生病]","url":"https://i.postimg.cc/XNxFZBnL/image.png"},{"name":"[發]","url":"https://i.postimg.cc/0ynhFfvm/image.png"},{"name":"[破涕为笑]","url":"https://i.postimg.cc/BZC5xwBx/image.png"},{"name":"[礼物]","url":"https://i.postimg.cc/rFQJLYd8/image.png"},{"name":"[福]","url":"https://i.postimg.cc/zfP6XGVG/image.png"},{"name":"[笑脸]","url":"https://i.postimg.cc/05HjRY8T/image.png"},{"name":"[脸红]","url":"https://i.postimg.cc/sgL4MQ9q/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"}
         ];
         const wechatEmojiMap = WECHAT_EMOJIS.reduce((acc, emoji) => {
             acc[emoji.name] = emoji.url;
@@ -402,11 +487,20 @@
 
         const DEFAULT_AVATAR = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
         const DEFAULT_IMAGE_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2NjYyIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1tGluZWpvaW49InJvdW5kIj48cmVjdIHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiPjwvY2lyY2xlPjxwb2x5bGluZSBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEiPjwvcG9seWxpbmU+PC9zdmc+';
+        
+        // ✨✨✨ 升级修改点 ③ (新增常量) ✨✨✨
+        // 我们定义一个存在 localStorage 里的 key，这样方便管理。
+        const PRESETS_STORAGE_KEY = 'wechatStoryPresets_v1';
 
         let state = { chatTitle: '', selfUserId: null, users: [], messages: [] };
         let activeTextarea = null;
         
         const dom = {
+            // ✨✨✨ 升级修改点 ④ (新增DOM引用) ✨✨✨
+            presetSelector: document.getElementById('preset-selector'),
+            savePresetBtn: document.getElementById('save-preset-btn'),
+            deletePresetBtn: document.getElementById('delete-preset-btn'),
+
             chatTitleEditor: document.getElementById('chat-title-editor'),
             userProfilesEditor: document.getElementById('user-profiles-editor'),
             messageListEditor: document.getElementById('message-list-editor'),
@@ -423,6 +517,45 @@
             chatMessagesContainer: document.getElementById('chat-messages-container'),
         };
         const generateId = () => `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        // ✨✨✨ 升级修改点 ⑤ (新增核心功能函数) ✨✨✨
+        // 这里是三个全新的函数，负责预设的“增删改查”。
+
+        /**
+         * 从 localStorage 加载所有预设
+         * @returns {Array} - 预设数组
+         */
+        function loadPresets() {
+            const presetsJson = localStorage.getItem(PRESETS_STORAGE_KEY);
+            try {
+                return presetsJson ? JSON.parse(presetsJson) : [];
+            } catch (e) {
+                console.error("解析预设失败:", e);
+                return [];
+            }
+        }
+
+        /**
+         * 将预设数组保存到 localStorage
+         * @param {Array} presets - 要保存的预设数组
+         */
+        function savePresets(presets) {
+            localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
+        }
+
+        /**
+         * 填充预设下拉选择框
+         */
+        function populatePresetSelector() {
+            const presets = loadPresets();
+            dom.presetSelector.innerHTML = '<option value="">-- 选择一个预设 --</option>';
+            presets.forEach(preset => {
+                const option = document.createElement('option');
+                option.value = preset.name;
+                option.textContent = preset.name;
+                dom.presetSelector.appendChild(option);
+            });
+        }
 
         function parseEmojis(text) {
             if (!text || typeof text !== 'string') return '';
@@ -509,7 +642,15 @@
                     headerHtml = `${dragHandleHtml}<img src="${avatar}" class="message-editor-avatar"><span class="message-editor-summary"><span class="summary-type">[时间戳]</span> ${item.content}</span>`;
                     bodyHtml = `<div class="form-group"><label>时间戳</label><input type="text" class="timestamp-input" value="${item.content}"></div>`;
                 }
-                editorItemDiv.innerHTML = `<div class="message-editor-header">${headerHtml}<button class="delete-btn" title="删除此条">×</button></div><div class="message-editor-body">${bodyHtml}</div>`;
+
+                const copyIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+                const controlsHtml = `
+                    <div class="message-editor-controls">
+                        <button class="copy-btn" title="复制此条">${copyIconSvg}</button>
+                        <button class="delete-btn" title="删除此条">×</button>
+                    </div>`;
+                editorItemDiv.innerHTML = `<div class="message-editor-header">${headerHtml}${controlsHtml}</div><div class="message-editor-body">${bodyHtml}</div>`;
+                
                 dom.messageListEditor.appendChild(editorItemDiv);
 
                 if (item.type === 'message' && item.contentType === 'text') {
@@ -581,6 +722,89 @@
             dom.chatMessagesContainer.appendChild(messagesWrapper);
             dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
         }
+
+        // ✨✨✨ 升级修改点 ⑥ (新增事件监听) ✨✨✨
+        // 给新的预设管理工具们绑定事件。
+
+        // 保存预设按钮
+        dom.savePresetBtn.addEventListener('click', () => {
+            const presetName = prompt("为当前的用户和标题配置起个名字吧：", state.chatTitle || "我的预设");
+            if (!presetName) {
+                alert("名字不能为空哦！");
+                return;
+            }
+
+            const presets = loadPresets();
+            const existingPresetIndex = presets.findIndex(p => p.name === presetName);
+
+            if (existingPresetIndex > -1) {
+                if (!confirm(`已存在名为 "${presetName}" 的预设，要覆盖它吗？`)) {
+                    return;
+                }
+            }
+            
+            // 注意：只保存标题和用户信息，不保存聊天记录
+            const presetData = {
+                chatTitle: state.chatTitle,
+                users: JSON.parse(JSON.stringify(state.users)), // 深拷贝以防意外修改
+                selfUserId: state.selfUserId
+            };
+
+            const newPreset = { name: presetName, data: presetData };
+
+            if (existingPresetIndex > -1) {
+                presets[existingPresetIndex] = newPreset;
+            } else {
+                presets.push(newPreset);
+            }
+
+            savePresets(presets);
+            populatePresetSelector();
+            dom.presetSelector.value = presetName; // 自动选中刚保存的
+            alert(`预设 "${presetName}" 已保存！`);
+        });
+
+        // 删除预设按钮
+        dom.deletePresetBtn.addEventListener('click', () => {
+            const selectedName = dom.presetSelector.value;
+            if (!selectedName) {
+                alert("请先从下拉框中选择一个要删除的预设。");
+                return;
+            }
+
+            if (confirm(`真的要删除预设 "${selectedName}" 吗？这个操作无法撤销！`)) {
+                let presets = loadPresets();
+                presets = presets.filter(p => p.name !== selectedName);
+                savePresets(presets);
+                populatePresetSelector();
+                alert(`预设 "${selectedName}" 已删除。`);
+            }
+        });
+
+        // 切换预设的下拉框
+        dom.presetSelector.addEventListener('change', (e) => {
+            const selectedName = e.target.value;
+            if (!selectedName) return;
+
+            const presets = loadPresets();
+            const selectedPreset = presets.find(p => p.name === selectedName);
+
+            if (selectedPreset) {
+                // 加载预设数据到 state
+                state.chatTitle = selectedPreset.data.chatTitle;
+                state.users = JSON.parse(JSON.stringify(selectedPreset.data.users)); // 深拷贝
+                state.selfUserId = selectedPreset.data.selfUserId;
+                state.messages = []; // 加载预设时，清空聊天记录，开始新的创作
+
+                // 更新整个界面
+                dom.chatTitleEditor.value = state.chatTitle;
+                renderUsersEditor();
+                renderMessagesEditor();
+                renderPreview();
+                alert(`已加载预设 "${selectedName}"，可以开始创作啦！`);
+            }
+        });
+
 
         dom.chatTitleEditor.addEventListener('input', (e) => { state.chatTitle = e.target.value; renderPreview(); });
         dom.addUserBtn.addEventListener('click', () => {
@@ -734,7 +958,28 @@
                 return;
             }
 
-            if (e.target.classList.contains('delete-btn')) {
+            if (e.target.closest('.copy-btn')) {
+                const itemToCopy = state.messages.find(m => m.id === item.id);
+                if (itemToCopy) {
+                    const newItem = JSON.parse(JSON.stringify(itemToCopy));
+                    newItem.id = generateId();
+                    newItem.isCollapsed = false; 
+                    
+                    const originalIndex = state.messages.findIndex(m => m.id === item.id);
+                    
+                    if (originalIndex > -1) {
+                        state.messages.splice(originalIndex + 1, 0, newItem);
+                    } else {
+                        state.messages.push(newItem);
+                    }
+                    
+                    renderMessagesEditor();
+                    renderPreview();
+                }
+                return;
+            }
+
+            if (e.target.closest('.delete-btn')) {
                 state.messages = state.messages.filter(m => m.id !== item.id);
                 renderMessagesEditor();
                 renderPreview();
@@ -770,7 +1015,7 @@
             const avatar3_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
             
             state = {
-                chatTitle: 'V7.0紧急需求对齐群 (3)',
+                chatTitle: 'V7.5紧急需求对齐群 (3)',
                 selfUserId: user1Id,
                 users: [
                     { id: user1Id, nickname: '我 (前端)', avatar: avatar1_b64 },
@@ -779,10 +1024,10 @@
                 ],
                 messages: [
                     { id: generateId(), type: 'timestamp', content: '上午 10:30', isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '同志们，紧急同步一个需求！[奋斗]\n客户爸爸想要一个\'一键换肤\'功能，今天就要！', isCollapsed: false },
+                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '同志们，紧急同步一个需求！\n客户爸爸想要一个\'一键换肤\'功能，今天就要！', isCollapsed: false },
                     { id: generateId(), type: 'message', userId: user1Id, contentType: 'voice', content: '今天就要？这工作量有点大啊，UI稿出来了吗？', showTranscription: true, isCollapsed: true },
                     { id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '我这边接口也得大改，今天肯定搞不完。[捂脸]', isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'image', content: 'https://i.postimg.cc/tJqg3YxT/image.png', isCollapsed: true },
+                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'image', content: 'https://i.postimg.cc/76Z5nkCx/wechat-2025-09-12-233239-704.png', isCollapsed: true },
                     { id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '别急别急，我就是传达一下精神，大家看看这个图，是不是很形象？[奸笑]', isCollapsed: true },
                     { id: generateId(), type: 'message', userId: user1Id, contentType: 'text', content: '哈哈哈哈[破涕为笑]，那我们还是先评估一下吧，明天给方案？', isCollapsed: true },
                     { id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '同意+1', isCollapsed: true }
@@ -793,10 +1038,13 @@
         });
 
         dom.resetBtn.addEventListener('click', () => {
-            if (confirm('确定要重置所有内容吗？此操作不可撤销。')) {
+            if (confirm('确定要重置所有内容吗？此操作不可撤销。\n（注意：这不会删除你已保存的预设）')) {
                 state = { chatTitle: '', selfUserId: null, users: [], messages: [] };
                 dom.chatTitleEditor.value = '';
+                dom.presetSelector.value = ''; // 重置下拉框
                 renderUsersEditor(); renderMessagesEditor(); renderPreview();
+                // 重新执行初始化，回到最开始的状态
+                init(true);
             }
         });
         
@@ -874,7 +1122,12 @@
         dom.exportLongBtn.addEventListener('click', exportLongImage);
         dom.exportCurrentBtn.addEventListener('click', exportCurrentView);
 
-        function init() {
+        // ✨✨✨ 升级修改点 ⑦ (修改init函数) ✨✨✨
+        // 我们让 init 函数在页面加载时，就去填充预设下拉框。
+        // 并且修改了它的逻辑，让它只在非重置操作时才自动添加用户。
+        function init(isReset = false) {
+            populatePresetSelector(); // 页面一加载就填充预设列表
+
             new Sortable(dom.messageListEditor, {
                 animation: 150,
                 handle: '.drag-handle',
@@ -885,15 +1138,18 @@
                     renderPreview();
                 }
             });
-
-            dom.addUserBtn.click();
-            dom.addUserBtn.click();
-            state.users[0].nickname = '我';
-            state.users[1].nickname = '对方昵称';
-            state.chatTitle = state.users[1].nickname;
-            dom.chatTitleEditor.value = state.chatTitle;
-            state.messages.forEach(m => m.isCollapsed = true);
-            renderUsersEditor(); renderMessagesEditor(); renderPreview();
+            
+            // 只有在首次加载或手动重置时，才创建默认用户
+            if (state.users.length === 0 || isReset) {
+                dom.addUserBtn.click();
+                dom.addUserBtn.click();
+                state.users[0].nickname = '我';
+                state.users[1].nickname = '对方昵称';
+                state.chatTitle = state.users[1].nickname;
+                dom.chatTitleEditor.value = state.chatTitle;
+                state.messages.forEach(m => m.isCollapsed = true);
+                renderUsersEditor(); renderMessagesEditor(); renderPreview();
+            }
         }
         init();
     });
