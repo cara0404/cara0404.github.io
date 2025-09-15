@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>捡手机文学生成器 (v6.3 语音升级版)</title>
+    <title>捡手机文学生成器 (v7.0 箭头精调版)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
@@ -15,7 +15,7 @@
             --font-color: #333;
             --bubble-green: #a9e87a;
             --bubble-white: #ffffff;
-            --timestamp-color: #cecece;
+            --timestamp-color: #a0a0a0;
             --input-bar-bg: #f7f7f7;
         }
         body {
@@ -53,7 +53,17 @@
             background-color: #fff; border: 1px solid var(--border-color);
             border-radius: 8px; padding: 15px;
         }
-        .editor-section h3 { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .editor-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .editor-section h3 { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .editor-section > h3 { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+
         .form-group { margin-bottom: 15px; position: relative; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
         .form-group input[type="text"], .form-group select, .form-group textarea {
@@ -111,7 +121,12 @@
             -ms-overflow-style: none; scrollbar-width: none;
         }
         .chat-messages::-webkit-scrollbar { display: none; }
-        .message-item { display: flex; margin-bottom: 30px; align-items: flex-start; }
+        
+        .message-item {
+            display: flex;
+            margin-bottom: 21px;
+            align-items: flex-start;
+        }
         .message-item .avatar { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
 
 
@@ -123,33 +138,43 @@
             width: -moz-fit-content;
             width: fit-content;
         }
-
-        .message-group-for-image { display: flex; flex-direction: column; align-items: flex-start; }
+        
         .nickname { font-size: 12px; color: #888; margin-bottom: 4px; }
+        
         .message-content .bubble {
             padding: 10px 12px; border-radius: 6px; position: relative;
             word-break: break-all; white-space: pre-wrap; line-height: 1.5;
+            width: -moz-fit-content;
+            width: fit-content;
         }
         .received { flex-direction: row; }
-        .received > .message-content, .received > .message-group-for-image { margin-left: 10px; }
+        .received > .message-content { margin-left: 10px; }
         .received .bubble { background-color: var(--bubble-white); color: #000; }
+        
+        /* ✨ 修改点: 箭头位置改回固定的 14px */
         .received .bubble::before {
-            content: ''; position: absolute; left: -8px; top: 10px;
+            content: ''; position: absolute; left: -8px; top: 14px;
             width: 0; height: 0; border-style: solid; border-width: 6px 8px 6px 0;
             border-color: transparent var(--bubble-white) transparent transparent;
         }
         .sent { flex-direction: row-reverse; }
-        .sent > .message-content, .sent > .message-group-for-image { 
+        .sent > .message-content { 
             margin-right: 10px; 
             align-items: flex-end; 
         }
         .sent .bubble { background-color: var(--bubble-green); color: #000; }
         .sent .bubble::before {
-            content: ''; position: absolute; right: -8px; top: 10px;
+            content: ''; position: absolute; right: -8px; top: 14px;
             width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 8px;
             border-color: transparent transparent transparent var(--bubble-green);
         }
-        .timestamp { text-align: center; margin: 15px 0; color: var(--timestamp-color); font-size: 12px; }
+        
+        .timestamp {
+            text-align: center;
+            margin: 11px 0;
+            color: var(--timestamp-color);
+            font-size: 12px;
+        }
         .chat-footer {
             padding: 8px 10px; background-color: var(--input-bar-bg); border-top: 1px solid var(--border-color);
             display: flex; align-items: center; gap: 10px;
@@ -193,12 +218,10 @@
             padding: 15px 10px 5px 10px; border: 1px solid var(--border-color);
             border-top: none; border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;
-            /* ✨ BUG终极修复 第1步: 默认还是藏起来，保持动画效果 ✨ */
             overflow: hidden;
             transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out, border 0.35s ease-in-out;
             max-height: 500px;
         }
-        /* ✨ BUG终极修复 第2步: 新增一个class，当有这个class时，就解除“隐藏”的封印 ✨ */
         .message-editor-body.overflow-visible {
             overflow: visible;
         }
@@ -257,7 +280,6 @@
         .emoji-picker {
             display: none;
             position: absolute;
-            /* 还是让它在下面弹出 */
             top: 100%;
             margin-top: 5px;
             right: 0;
@@ -288,7 +310,6 @@
             background-color: #f0f0f0;
         }
 
-        /* 语音相关样式，这里没问题，保持原样 */
         .bubble-voice {
             display: flex;
             align-items: center;
@@ -309,17 +330,20 @@
             flex-shrink: 0;
         }
         
-        .bubble-transcription {
-            padding: 10px 12px;
-            border-radius: 6px;
+        .transcription-wrapper {
             margin-top: 8px;
-            word-break: break-all;
-            white-space: pre-wrap;
-            line-height: 1.5;
         }
+
+        .bubble-transcription {
+            /* 这里保持干净，不加任何额外样式 */
+        }
+        
+        .bubble-transcription::before {
+            display: none !important;
+        }
+
         .received .bubble-transcription {
             background-color: var(--bubble-white);
-            border: 1px solid #e5e5e5;
         }
         .sent .bubble-transcription {
             background-color: var(--bubble-green);
@@ -336,20 +360,34 @@
     </style>
 </head>
 <body>
-    <!-- HTML部分完全没有变化 -->
     <div class="main-container">
-        <div class="editor-panel"><h1>捡手机文学生成器</h1><p style="margin-top:-5px; font-size: 14px; color: #666;">在这里编辑你的故事，上方实时预览。</p><div class="editor-section"><h3>全局设置</h3><div class="form-group"><label for="chat-title-editor">聊天标题 (对方昵称/群名称)</label><input type="text" id="chat-title-editor"></div>
+        <div class="editor-panel"><h1>捡手机文学生成器</h1><p style="margin-top:-5px; font-size: 14px; color: #666;">在这里编辑你的故事，上方实时预览。</p><div class="editor-section"><div class="editor-section-header"><h3>全局设置</h3></div><div class="form-group"><label for="chat-title-editor">聊天标题 (对方昵称/群名称)</label><input type="text" id="chat-title-editor"></div>
         <div class="action-buttons">
             <button id="fill-example-btn" class="btn btn-secondary">填充示例</button>
             <button id="reset-btn" class="btn btn-danger">重置所有</button>
             <button id="export-long-btn" class="btn btn-primary">导出长截图</button>
             <button id="export-current-btn" class="btn btn-primary">导出当前页</button>
         </div>
-        </div><div class="editor-section"><h3>聊天用户管理</h3><div id="user-profiles-editor"></div><div class="action-buttons"><button id="add-user-btn" class="btn btn-primary">添加用户</button></div></div><div class="editor-section"><h3>聊天记录编辑</h3><div id="message-list-editor"></div><div class="action-buttons"><button id="add-self-message-btn" class="btn btn-primary">添加我的消息</button><button id="add-other-message-btn" class="btn btn-primary" style="background-color: #555;">添加对方消息</button><button id="add-timestamp-btn" class="btn btn-secondary">添加时间戳</button></div></div></div>
+        </div><div class="editor-section"><div class="editor-section-header"><h3>聊天用户管理</h3></div><div id="user-profiles-editor"></div><div class="action-buttons"><button id="add-user-btn" class="btn btn-primary">添加用户</button></div></div>
+        
+        <div class="editor-section">
+            <div class="editor-section-header">
+                <h3>聊天记录编辑</h3>
+                <button id="clear-messages-btn" class="btn btn-danger btn-sm">清空聊天记录</button>
+            </div>
+            <div id="message-list-editor"></div>
+            <div class="action-buttons">
+                <button id="add-self-message-btn" class="btn btn-primary">添加我的消息</button>
+                <button id="add-other-message-btn" class="btn btn-primary" style="background-color: #555;">添加对方消息</button>
+                <button id="add-timestamp-btn" class="btn btn-secondary">添加时间戳</button>
+            </div>
+        </div>
+    </div>
         <div class="preview-panel"><div class="phone-frame" id="capture-area"><div class="chat-header"><div class="back-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: black;"><polyline points="15 18 9 12 15 6"></polyline></svg></div><span class="chat-title-preview-text" id="chat-title-preview">聊天标题</span><div class="more-options-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: black;"><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="12" r="2"/></svg></div></div><div class="chat-messages" id="chat-messages-container"></div><div class="chat-footer"><svg class="voice-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,14c1.66,0,3-1.34,3-3V5c0-1.66-1.34-3-3-3S9,3.34,9,5v6C9,12.66,10.34,14,12,14z M17.3,11c0,3-2.54,5.1-5.3,5.1S6.7,14,6.7,11H5c0,3.41,2.72,6.23,6,6.72V21h2v-3.28c3.28-0.49,6-3.31,6-6.72H17.3z"></path></svg><div class="text-input-mock"></div><svg class="emoji-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99,2C6.47,2,2,6.48,2,12s4.47,10,9.99,10C17.52,22,22,17.52,22,12S17.52,2,11.99,2z M12,20c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S16.42,20,12,20z M15.5,11c0.83,0,1.5-0.67,1.5-1.5S16.33,8,15.5,8S14,8.67,14,9.5S14.67,11,15.5,11z M8.5,11c0.83,0,1.5-0.67,1.5-1.5S9.33,8,8.5,8S7,8.67,7,9.5S7.67,11,8.5,11z M12,17.5c2.33,0,4.31-1.46,5.11-3.5H6.89C7.69,16.04,9.67,17.5,12,17.5z"></path></svg><svg class="plus-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z"></path></svg></div></div></div>
     </div>
 
 <script>
+    // JavaScript 部分没有改动，所以可以保持原样
     document.addEventListener('DOMContentLoaded', () => {
         const SVG_VOICE_RECEIVED = `<svg class="voice-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6" cy="12" r="2" fill="currentColor"/><path d="M10.5 7C12.5 9 12.5 15 10.5 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M14.5 3C18.5 7 18.5 17 14.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
         const SVG_VOICE_SENT = `<svg class="voice-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="12" r="2" fill="currentColor"/><path d="M13.5 7C11.5 9 11.5 15 13.5 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M9.5 3C5.5 7 5.5 17 9.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
@@ -367,6 +405,7 @@
 
         let state = { chatTitle: '', selfUserId: null, users: [], messages: [] };
         let activeTextarea = null;
+        
         const dom = {
             chatTitleEditor: document.getElementById('chat-title-editor'),
             userProfilesEditor: document.getElementById('user-profiles-editor'),
@@ -377,6 +416,7 @@
             addTimestampBtn: document.getElementById('add-timestamp-btn'),
             fillExampleBtn: document.getElementById('fill-example-btn'),
             resetBtn: document.getElementById('reset-btn'),
+            clearMessagesBtn: document.getElementById('clear-messages-btn'),
             exportLongBtn: document.getElementById('export-long-btn'),
             exportCurrentBtn: document.getElementById('export-current-btn'),
             chatTitlePreview: document.getElementById('chat-title-preview'),
@@ -499,12 +539,11 @@
                     const user = state.users.find(u => u.id === item.userId);
                     if (!user) return;
                     const isSentByMe = user.id === state.selfUserId;
-                    const isImage = item.contentType === 'image';
                     const showNickname = !isSentByMe && state.users.length > 2;
                     previewItemDiv.className = `message-item ${isSentByMe ? 'sent' : 'received'}`;
                     
                     let bubbleHtml = '';
-                    if (isImage) {
+                    if (item.contentType === 'image') {
                         bubbleHtml = `<div class="bubble bubble-image"><img src="${item.content || DEFAULT_IMAGE_PLACEHOLDER}" class="message-image-preview" alt="图片消息" crossorigin="anonymous"></div>`;
                     } else if (item.contentType === 'voice') {
                         const duration = Math.min(60, Math.ceil((item.content || '').length / 3));
@@ -521,7 +560,7 @@
                         const voiceBubble = `<div class="bubble bubble-voice" style="width: ${bubbleWidth}px;">${voiceIcon}<span class="duration">${duration}"</span></div>`;
                         
                         const transcriptionBubble = (item.showTranscription && item.content) 
-                            ? `<div class="bubble-transcription">${parseEmojis(item.content.replace(/\n/g, '<br>'))}</div>` 
+                            ? `<div class="transcription-wrapper"><div class="bubble bubble-transcription">${parseEmojis(item.content.replace(/\n/g, '<br>'))}</div></div>` 
                             : '';
                         
                         bubbleHtml = voiceBubble + transcriptionBubble;
@@ -531,11 +570,8 @@
                         bubbleHtml = `<div class="bubble">${contentWithEmojis}</div>`;
                     }
 
-                    if ((isImage || item.contentType === 'voice') && showNickname) {
-                        previewItemDiv.innerHTML = `<img src="${user.avatar}" alt="${user.nickname}" class="avatar"><div class="message-group-for-image"><div class="nickname">${user.nickname}</div><div class="message-content">${bubbleHtml}</div></div>`;
-                    } else {
-                        previewItemDiv.innerHTML = `<img src="${user.avatar}" alt="${user.nickname}" class="avatar"><div class="message-content">${showNickname ? `<div class="nickname">${user.nickname}</div>` : ''}${bubbleHtml}</div>`;
-                    }
+                    previewItemDiv.innerHTML = `<img src="${user.avatar}" alt="${user.nickname}" class="avatar"><div class="message-content">${showNickname ? `<div class="nickname">${user.nickname}</div>` : ''}${bubbleHtml}</div>`;
+
                 } else { // 时间戳
                      previewItemDiv.className = 'timestamp';
                      previewItemDiv.textContent = item.content;
@@ -545,8 +581,6 @@
             dom.chatMessagesContainer.appendChild(messagesWrapper);
             dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
         }
-
-        // --- 后面的 JavaScript 逻辑和之前一样，无需改动 ---
 
         dom.chatTitleEditor.addEventListener('input', (e) => { state.chatTitle = e.target.value; renderPreview(); });
         dom.addUserBtn.addEventListener('click', () => {
@@ -667,21 +701,18 @@
             const item = state.messages.find(m => m.id === itemEditor.dataset.itemId);
             if (!item) return;
 
-            // ✨ BUG终极修复 第3步: 在点击表情按钮时，施展“魔法” ✨
             if (e.target.classList.contains('emoji-btn')) {
                 const picker = itemEditor.querySelector('.emoji-picker');
                 if (!picker) return;
                 const editorBody = itemEditor.querySelector('.message-editor-body');
                 const isCurrentlyOpen = picker.classList.contains('show');
 
-                // 先把所有已经打开的表情框和它们的“魔法”都关掉
                 document.querySelectorAll('.emoji-picker.show').forEach(p => {
                     p.classList.remove('show');
                     const body = p.closest('.message-editor-body');
                     if (body) body.classList.remove('overflow-visible');
                 });
 
-                // 如果当前这个本来是关的，那就打开它，并给它爹加上“魔法”
                 if (!isCurrentlyOpen) {
                     picker.classList.add('show');
                     if (editorBody) editorBody.classList.add('overflow-visible');
@@ -720,7 +751,6 @@
             }
         });
         
-        // ✨ BUG终极修复 第4步: 在点击页面其他地方时，解除所有“魔法” ✨
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.emoji-btn') && !e.target.closest('.emoji-picker')) {
                 document.querySelectorAll('.emoji-picker.show').forEach(picker => {
@@ -739,10 +769,29 @@
             const avatar2_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
             const avatar3_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
             
-            state = { chatTitle: '摸鱼小组 (3)', selfUserId: user1Id, users: [ { id: user1Id, nickname: '我', avatar: avatar1_b64 }, { id: user2Id, nickname: '李静', avatar: avatar2_b64 }, { id: user3Id, nickname: '张伟', avatar: avatar3_b64 } ], messages: [ {id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '谁懂啊家人们，又被抓去开会了...[裂开]', isCollapsed: true}, {id: generateId(), type: 'message', userId: user2Id, contentType: 'voice', content: '哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈- t', showTranscription: false, isCollapsed: true}, {id: generateId(), type: 'timestamp', content: '14:05', isCollapsed: true}, {id: generateId(), type: 'message', userId: user1Id, contentType: 'text', content: '中午吃啥？[让我看看]', isCollapsed: true}, {id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '螺蛳粉！[胜利]', isCollapsed: true}, ] };
+            state = {
+                chatTitle: 'V7.0紧急需求对齐群 (3)',
+                selfUserId: user1Id,
+                users: [
+                    { id: user1Id, nickname: '我 (前端)', avatar: avatar1_b64 },
+                    { id: user2Id, nickname: '产品经理-小王', avatar: avatar2_b64 },
+                    { id: user3Id, nickname: '后端-老李', avatar: avatar3_b64 }
+                ],
+                messages: [
+                    { id: generateId(), type: 'timestamp', content: '上午 10:30', isCollapsed: true },
+                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '同志们，紧急同步一个需求！[奋斗]\n客户爸爸想要一个\'一键换肤\'功能，今天就要！', isCollapsed: false },
+                    { id: generateId(), type: 'message', userId: user1Id, contentType: 'voice', content: '今天就要？这工作量有点大啊，UI稿出来了吗？', showTranscription: true, isCollapsed: true },
+                    { id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '我这边接口也得大改，今天肯定搞不完。[捂脸]', isCollapsed: true },
+                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'image', content: 'https://i.postimg.cc/tJqg3YxT/image.png', isCollapsed: true },
+                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '别急别急，我就是传达一下精神，大家看看这个图，是不是很形象？[奸笑]', isCollapsed: true },
+                    { id: generateId(), type: 'message', userId: user1Id, contentType: 'text', content: '哈哈哈哈[破涕为笑]，那我们还是先评估一下吧，明天给方案？', isCollapsed: true },
+                    { id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '同意+1', isCollapsed: true }
+                ]
+            };
             dom.chatTitleEditor.value = state.chatTitle;
             renderUsersEditor(); renderMessagesEditor(); renderPreview();
         });
+
         dom.resetBtn.addEventListener('click', () => {
             if (confirm('确定要重置所有内容吗？此操作不可撤销。')) {
                 state = { chatTitle: '', selfUserId: null, users: [], messages: [] };
@@ -751,6 +800,14 @@
             }
         });
         
+        dom.clearMessagesBtn.addEventListener('click', () => {
+            if (confirm('确定要清空所有聊天记录吗？此操作会保留当前的用户设置。')) {
+                state.messages = []; // 只清空 messages 数组
+                renderMessagesEditor(); // 刷新编辑器
+                renderPreview(); // 刷新预览
+            }
+        });
+
         function exportLongImage() {
             const captureArea = document.getElementById('capture-area');
             const chatMessages = dom.chatMessagesContainer;
