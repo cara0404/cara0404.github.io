@@ -8,12 +8,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         :root {
+            /* ✨✨✨ 本次升级点 ① (确认聊天背景颜色) ✨✨✨ */
+            /* 你要的聊天背景色 #ededed 已经在这里设置好了，就是这个 --wechat-bg 变量。 */
             --wechat-bg: #ededed;
             --primary-color: #07c160;
             --border-color: #e0e0e0;
             --editor-bg: #f7f7f7;
             --font-color: #333;
-            --bubble-green: #a9e87a;
+            /* ✨✨✨ 本次升级点 ② (修改绿色气泡颜色) ✨✨✨ */
+            /* 把原来的 #a9e87a 换成你想要的 #95ec69 就行啦！ */
+            --bubble-green: #95ec69;
             --bubble-white: #ffffff;
             --timestamp-color: #a0a0a0;
             --input-bar-bg: #f7f7f7;
@@ -448,8 +452,6 @@
             <div class="editor-section">
                 <div class="editor-section-header">
                     <h3>聊天用户管理</h3>
-                    <!-- ✨✨✨ 本次升级点 ① (添加“清空用户”按钮) ✨✨✨ -->
-                    <!-- 就是这里！我们在这里加上一个红色的“清空用户”按钮，让它和“清空聊天记录”按钮看起来像兄弟。 -->
                     <button id="clear-users-btn" class="btn btn-danger btn-sm">清空用户</button>
                 </div>
                 <div id="user-profiles-editor"></div>
@@ -529,12 +531,7 @@
             fillExampleBtn: document.getElementById('fill-example-btn'),
             resetBtn: document.getElementById('reset-btn'),
             clearMessagesBtn: document.getElementById('clear-messages-btn'),
-            
-            // ✨✨✨ 本次升级点 ② (获取新按钮) ✨✨✨
-            // 就像我们要操作“清空聊天记录”按钮需要先找到它一样，
-            // 我们也需要先找到我们刚刚添加的“清空用户”按钮，这样才能在后面给它加功能。
             clearUsersBtn: document.getElementById('clear-users-btn'),
-
             exportLongBtn: document.getElementById('export-long-btn'),
             exportCurrentBtn: document.getElementById('export-current-btn'),
             chatTitlePreview: document.getElementById('chat-title-preview'),
@@ -1120,19 +1117,12 @@
             }
         });
 
-        // ✨✨✨ 本次升级点 ③ (为新按钮添加功能) ✨✨✨
-        // 这里就是给“清空用户”按钮绑定点击事件的地方，也就是它被点击后具体要做什么。
         dom.clearUsersBtn.addEventListener('click', () => {
-            // 弹出确认框，防止误触，这是好习惯！
-            // 并且告诉用户，清空用户会连带清空聊天记录。
             if (confirm('确定要清空所有用户吗？\n注意：这会一并清空所有聊天记录，但会保留聊天标题。此操作不可撤销。')) {
-                // 把 state 里面的用户数组和消息数组都清空
                 state.users = [];
                 state.messages = [];
-                // 别忘了把“自己”的ID也清掉
                 state.selfUserId = null;
                 
-                // 调用渲染函数，让界面上的变化显示出来
                 renderUsersEditor();
                 renderMessagesEditor();
                 renderPreview();
