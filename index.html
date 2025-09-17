@@ -727,20 +727,14 @@
             });
             dom.chatMessagesContainer.appendChild(messagesWrapper);
 
-            // ✨✨✨ 本次升级点 ③ (优化后的智能滚动逻辑) ✨✨✨
-            // 判断是否为PC端（宽屏）且有指定消息ID，才执行滚动到具体位置的逻辑
             if (itemIdToFocus && window.innerWidth > 900) {
                 const targetElement = messagesWrapper.querySelector(`[data-item-id="${itemIdToFocus}"]`);
                 if (targetElement) {
-                    // 在PC端，平滑滚动到视野中央，方便预览
                     targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
-                    // 找不到元素时的备用方案
                     dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
                 }
             } else {
-                // 在移动端或没有指定消息ID时，始终滚动到底部
-                // 这可以防止在移动端编辑时页面跳动，同时保持添加新消息后的行为一致
                 dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
             }
         }
@@ -1155,13 +1149,25 @@
             const chatMessages = dom.chatMessagesContainer;
             const originalPhoneHeight = captureArea.style.height;
             const originalMessagesHeight = chatMessages.style.height;
-            const originalMessagesOverflow = chatMessages.style.overflowY;
+            
+            // =================================================================
+            // ✨✨✨ 本次升级点 ①：修复“导出长截图”的滚动条问题 开始 ✨✨✨
+            // 之前只保存了 overflowY，现在我们把整个 overflow 属性都保存起来，更保险
+            const originalMessagesOverflow = chatMessages.style.overflow;
+            
             dom.exportLongBtn.textContent = '生成中...';
             dom.exportLongBtn.disabled = true;
             dom.exportCurrentBtn.disabled = true;
+            
             captureArea.style.height = 'auto';
             chatMessages.style.height = 'auto';
+            
+            // 把 overflowY 设为 visible 让内容全部展开，同时把 overflowX 设为 hidden，强制干掉水平滚动条
             chatMessages.style.overflowY = 'visible';
+            chatMessages.style.overflowX = 'hidden';
+            // ✨✨✨ 本次升级点 ①：修复“导出长截图”的滚动条问题 结束 ✨✨✨
+            // =================================================================
+
             htmlToImage.toPng(captureArea, { quality: 1.0, pixelRatio: 2, backgroundColor: '#ededed', cacheBust: true })
             .then(function (dataUrl) {
                 const link = document.createElement('a');
@@ -1176,7 +1182,14 @@
             .finally(() => {
                 captureArea.style.height = originalPhoneHeight;
                 chatMessages.style.height = originalMessagesHeight;
-                chatMessages.style.overflowY = originalMessagesOverflow;
+                
+                // =================================================================
+                // ✨✨✨ 本次升级点 ②：恢复现场 开始 ✨✨✨
+                // 恢复整个 overflow 属性
+                chatMessages.style.overflow = originalMessagesOverflow;
+                // ✨✨✨ 本次升级点 ②：恢复现场 结束 ✨✨✨
+                // =================================================================
+
                 dom.exportLongBtn.textContent = '导出长截图';
                 dom.exportLongBtn.disabled = false;
                 dom.exportCurrentBtn.disabled = false;
@@ -1187,12 +1200,25 @@
             const contentWrapper = document.getElementById('messages-content-wrapper');
             const chatMessages = dom.chatMessagesContainer;
             const scrollTop = chatMessages.scrollTop;
+
+            // =================================================================
+            // ✨✨✨ 本次升级点 ③：修复“导出当前页”的滚动条问题 开始 ✨✨✨
+            // 在截图前，先保存聊天区域原始的 overflow 样式
+            const originalMessagesOverflow = chatMessages.style.overflow;
+
             dom.exportCurrentBtn.textContent = '生成中...';
             dom.exportLongBtn.disabled = true;
             dom.exportCurrentBtn.disabled = true;
+
             if (contentWrapper) {
                 contentWrapper.style.transform = `translateY(-${scrollTop}px)`;
             }
+            
+            // 强制把 overflow 设置为 hidden，这样无论垂直还是水平滚动条都会被隐藏
+            chatMessages.style.overflow = 'hidden';
+            // ✨✨✨ 本次升级点 ③：修复“导出当前页”的滚动条问题 结束 ✨✨✨
+            // =================================================================
+
             htmlToImage.toPng(captureArea, { quality: 1.0, pixelRatio: 2, backgroundColor: '#ededed', cacheBust: true })
             .then(function (dataUrl) {
                 const link = document.createElement('a');
@@ -1208,6 +1234,14 @@
                 if (contentWrapper) {
                     contentWrapper.style.transform = '';
                 }
+
+                // =================================================================
+                // ✨✨✨ 本次升级点 ④：恢复现场 开始 ✨✨✨
+                // 截图完成后，把 overflow 样式恢复原状
+                chatMessages.style.overflow = originalMessagesOverflow;
+                // ✨✨✨ 本次升级点 ④：恢复现场 结束 ✨✨✨
+                // =================================================================
+
                 dom.exportCurrentBtn.textContent = '导出当前页';
                 dom.exportLongBtn.disabled = false;
                 dom.exportCurrentBtn.disabled = false;
