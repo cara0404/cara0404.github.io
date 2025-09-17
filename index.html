@@ -146,12 +146,13 @@
             line-height: 20px;
         }
 
-        /* 专门处理文本气泡，让它撑满父容器，解决右侧空白问题 */
-        /* 使用 :not() 来排除图片和语音气泡，避免影响它们 */
-        .message-content .bubble:not(.bubble-image):not(.bubble-voice) {
-            width: 100%;
-            box-sizing: border-box; /* 加上这个好习惯，防止padding把它撑破 */
-        }
+.message-content .bubble:not(.bubble-image):not(.bubble-voice) {
+    width: 100%;
+    box-sizing: border-box; /* 加上这个好习惯，防止padding把它撑破 */
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+}
 
         .received { flex-direction: row; }
         
@@ -353,6 +354,16 @@
             max-width: 240px; 
             transition: width 0.3s ease;
         }
+
+        /* ✨✨✨ 这里是新的核心修正！ ✨✨✨ */
+        /* 上次的问题在于，通用的 .bubble 样式优先级更高，覆盖了我们的修改。 */
+        /* 这次我们用 .bubble.bubble-voice 这个更精确、优先级更高的“选择器”来指定样式，确保它能生效！ */
+        .bubble.bubble-voice {
+            /* 重新设置内边距：上下6.5px, 左右12px */
+            /* 计算公式: (40px头像高度 - 27px图标高度) / 2 = 6.5px */
+            padding: 6.5px 12px;
+        }
+
         .sent .bubble-voice {
             flex-direction: row-reverse;
         }
@@ -360,8 +371,8 @@
             font-size: 14px;
         }
         .bubble-voice .voice-icon-svg {
-            width: 20px;
-            height: 20px;
+            width: 27px;
+            height: 27px;
             flex-shrink: 0;
         }
         .transcription-wrapper {
@@ -486,13 +497,14 @@
                 </div>
                 <div class="chat-messages" id="chat-messages-container"></div>
                 <div class="chat-footer">
-                    <!-- ✨✨✨ 这里就是修改过的地方！✨✨✨ -->
-                    <svg class="voice-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <g>
-                            <circle cx="7" cy="12" r="1.2" fill="currentColor"/>
-                            <path d="M10.5 9C12 10.5 12 13.5 10.5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M13.5 7C15.5 9.5 15.5 14.5 13.5 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <svg class="voice-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="46.8" fill="none" stroke="currentColor" stroke-width="6.4"/>
+                        <g transform="translate(-5, 0)">
+                            <path d="M 35 50 L 43.91 41.09 A 12.6 12.6 0 0 1 43.91 58.91 Z" fill="currentColor"/>
+                            <g transform="translate(-2, 0)">
+                                <path d="M 55.35 32.89 A 26.6 26.6 0 0 1 55.35 67.11" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/>
+                                <path d="M 66.09 23.92 A 40.6 40.6 0 0 1 66.09 76.08" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/>
+                            </g>
                         </g>
                     </svg>
                     <div class="text-input-mock"></div>
@@ -505,8 +517,8 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const SVG_VOICE_RECEIVED = `<svg class="voice-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6" cy="12" r="2" fill="currentColor"/><path d="M10.5 7C12.5 9 12.5 15 10.5 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M14.5 3C18.5 7 18.5 17 14.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
-        const SVG_VOICE_SENT = `<svg class="voice-icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="12" r="2" fill="currentColor"/><path d="M13.5 7C11.5 9 11.5 15 13.5 17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M9.5 3C5.5 7 5.5 17 9.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+        const SVG_VOICE_RECEIVED = `<svg class="voice-icon-svg" viewBox="25 0 50 100" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-5, 0)"><path d="M 35 50 L 43.91 41.09 A 12.6 12.6 0 0 1 43.91 58.91 Z" fill="currentColor"/><g transform="translate(-2, 0)"><path d="M 55.35 32.89 A 26.6 26.6 0 0 1 55.35 67.11" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/><path d="M 66.09 23.92 A 40.6 40.6 0 0 1 66.09 76.08" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/></g></g></svg>`;
+        const SVG_VOICE_SENT = `<svg class="voice-icon-svg" viewBox="25 0 50 100" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(100, 0) scale(-1, 1)"><g transform="translate(-5, 0)"><path d="M 35 50 L 43.91 41.09 A 12.6 12.6 0 0 1 43.91 58.91 Z" fill="currentColor"/><g transform="translate(-2, 0)"><path d="M 55.35 32.89 A 26.6 26.6 0 0 1 55.35 67.11" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/><path d="M 66.09 23.92 A 40.6 40.6 0 0 1 66.09 76.08" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/></g></g></g></svg>`;
 
         const WECHAT_EMOJIS = [
             {"name":"[微笑]","url":"https://i.postimg.cc/wTZ1JhZX/image.png"},{"name":"[撇嘴]","url":"https://i.postimg.cc/3N9gYdxL/image.png"},{"name":"[色]","url":"https://i.postimg.cc/4y49LsQp/image.png"},{"name":"[发呆]","url":"https://i.postimg.cc/Nf137tPd/image.png"},{"name":"[得意]","url":"https://i.postimg.cc/Ss3BVxhv/image.png"},{"name":"[流泪]","url":"https://i.postimg.cc/Y9KNx5Px/image.png"},{"name":"[害羞]","url":"https://i.postimg.cc/7PzdwDDq/image.png"},{"name":"[闭嘴]","url":"https://i.postimg.cc/4nCWHKgX/image.png"},{"name":"[睡]","url":"https://i.postimg.cc/MGkjkyY6/image.png"},{"name":"[大哭]","url":"https://i.postimg.cc/yNQ4gTrB/image.png"},{"name":"[尴尬]","url":"https://i.postimg.cc/4d7MKR9b/image.png"},{"name":"[发怒]","url":"https://i.postimg.cc/jStGM1pt/image.png"},{"name":"[调皮]","url":"https://i.postimg.cc/zDRZvKwZ/image.png"},{"name":"[呲牙]","url":"https://i.postimg.cc/K85yFbP1/image.png"},{"name":"[惊讶]","url":"https://i.postimg.cc/tC5r44cG/image.png"},{"name":"[难过]","url":"https://i.postimg.cc/0j9pTpPM/image.png"},{"name":"[囧]","url":"https://i.postimg.cc/L88xYMdY/image.png"},{"name":"[抓狂]","url":"https://i.postimg.cc/V5QcsLZC/image.png"},{"name":"[吐]","url":"https://i.postimg.cc/XY5pgr6T/image.png"},{"name":"[偷笑]","url":"https://i.postimg.cc/PJFPSZxk/image.png"},{"name":"[愉快]","url":"https://i.postimg.cc/SQ5Stmdq/image.png"},{"name":"[白眼]","url":"https://i.postimg.cc/JhRdQBBn/image.png"},{"name":"[傲慢]","url":"https://i.postimg.cc/BnTVDCbk/image.png"},{"name":"[困]","url":"https://i.postimg.cc/ZKTc2h57/image.png"},{"name":"[惊恐]","url":"https://i.postimg.cc/9FV827JB/image.png"},{"name":"[流汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[憨笑]","url":"https://i.postimg.cc/28fJ5J8h/image.png"},{"name":"[悠闲]","url":"https://i.postimg.cc/wMS9tkM3/image.png"},{"name":"[咒骂]","url":"https://i.postimg.cc/fbwD0yz7/image.png"},{"name":"[疑问]","url":"https://i.postimg.cc/ZqcYf37D/image.png"},{"name":"[嘘]","url":"https://i.postimg.cc/pXwdyP5k/image.png"},{"name":"[晕]","url":"https://i.postimg.cc/mgWbBVK5/image.png"},{"name":"[衰]","url":"https://i.postimg.cc/4xHhF8V2/image.png"},{"name":"[骷髅]","url":"https://i.postimg.cc/qqrLpPX7/image.png"},{"name":"[敲打]","url":"https://i.postimg.cc/L6CzWY75/image.png"},{"name":"[再见]","url":"https://i.postimg.cc/t4d9TWjC/image.png"},{"name":"[擦汗]","url":"https://i.postimg.cc/kXKm1KDF/image.png"},{"name":"[抠鼻]","url":"https://i.postimg.cc/MTV526B4/image.png"},{"name":"[鼓掌]","url":"https://i.postimg.cc/3N2cBj9k/image.png"},{"name":"[坏笑]","url":"https://i.postimg.cc/mDHXL3vm/image.png"},{"name":"[左哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[右哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[哈欠]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[鄙视]","url":"https://i.postimg.cc/6q4HQrFH/image.png"},{"name":"[委屈]","url":"https://i.postimg.cc/tTqJyDnj/image.png"},{"name":"[快哭了]","url":"https://i.postimg.cc/HW0z6Ld8/image.png"},{"name":"[阴险]","url":"https://i.postimg.cc/rmwV7m7y/image.png"},{"name":"[亲亲]","url":"https://i.postimg.cc/8z7hgkQH/image.png"},{"name":"[可怜]","url":"https://i.postimg.cc/QMBSmkdj/image.png"},{"name":"[菜刀]","url":"https://i.postimg.cc/pVgvJqVL/image.png"},{"name":"[啤酒]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},{"name":"[咖啡]","url":"https://i.postimg.cc/3xfn2b7L/image.png"},{"name":"[猪头]","url":"https://i.postimg.cc/sxZrRZmz/image.png"},{"name":"[玫瑰]","url":"https://i.postimg.cc/mgkSZNM7/image.png"},{"name":"[凋谢]","url":"https://i.postimg.cc/L5PrWF46/image.png"},{"name":"[嘴唇]","url":"https://i.postimg.cc/zDLbftPz/image.png"},{"name":"[爱心]","url":"https://i.postimg.cc/52dr6r48/image.png"},{"name":"[心碎]","url":"https://i.postimg.cc/L6YXHJ5n/image.png"},{"name":"[蛋糕]","url":"https://i.postimg.cc/LXJdzZrP/image.png"},{"name":"[闪电]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[炸弹]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[便便]","url":"https://i.postimg.cc/9X4V9vhk/image.png"},{"name":"[月亮]","url":"https://i.postimg.cc/qM3kPWDK/image.png"},{"name":"[太阳]","url":"https://i.postimg.cc/W4Mqsh9M/image.png"},{"name":"[拥抱]","url":"https://i.postimg.cc/76tH44y3/image.png"},{"name":"[强]","url":"https://i.postimg.cc/c44RTMFP/image.png"},{"name":"[弱]","url":"https://i.postimg.cc/wvpJNhtf/image.png"},{"name":"[握手]","url":"https://i.postimg.cc/0QVQNm7J/image.png"},{"name":"[胜利]","url":"https://i.postimg.cc/3NLDzVtV/image.png"},{"name":"[抱拳]","url":"https://i.postimg.cc/wvvfC82Y/image.png"},{"name":"[勾引]","url":"https://i.postimg.cc/ZRGQpsPk/image.png"},{"name":"[拳头]","url":"https://i.postimg.cc/PqZYN6qv/image.png"},{"name":"[OK]","url":"https://i.postimg.cc/vH6j8ysQ/OK.png"},{"name":"[跳跳]","url":"https://i.postimg.cc/sXmBZbCx/image.png"},{"name":"[发抖]","url":"https://i.postimg.cc/jd0V72vW/image.png"},{"name":"[转圈]","url":"https://i.postimg.cc/Px7jcMmK/image.png"},{"name":"[嘿哈]","url":"https://i.postimg.cc/nLMS5f0b/image.png"},{"name":"[捂脸]","url":"https://i.postimg.cc/2yJSQDck/image.png"},{"name":"[奸笑]","url":"https://i.postimg.cc/3Njtp8Jp/image.png"},{"name":"[机智]","url":"https://i.postimg.cc/hvRCfzgc/image.png"},{"name":"[皱眉]","url":"https://i.postimg.cc/cHCWXz8r/image.png"},{"name":"[耶]","url":"https://i.postimg.cc/FKmsgGZL/image.png"},{"name":"[红包]","url":"https://i.postimg.cc/JhgYCY2y/image.png"},{"name":"[吃瓜]","url":"https://i.postimg.cc/Bn3GdbKW/image.png"},{"name":"[加油]","url":"https://i.postimg.cc/ry5n7JCm/image.png"},{"name":"[汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[天啊]","url":"https://i.postimg.cc/mkrP3VTw/image.png"},{"name":"[Emm]","url":"https://i.postimg.cc/CM2XV19P/Emm.png"},{"name":"[社会社会]","url":"https://i.postimg.cc/HsxMbWxg/image.png"},{"name":"[旺柴]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[好的]","url":"https://i.postimg.cc/CxhQGq8K/image.png"},{"name":"[哇]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[打脸]","url":"https://i.postimg.cc/ZqKz5QHV/image.png"},{"name":"[裂开]","url":"https://i.postimg.cc/FKJg3rTR/image.png"},{"name":"[doge]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[惊喜]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[让我看看]","url":"https://i.postimg.cc/1trFrfw9/image.png"},{"name":"[叹气]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[苦涩]","url":"https://i.postimg.cc/8cbbcZtm/image.png"},{"name":"[翻白眼]","url":"https://i.postimg.cc/tgg8jxRc/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"},{"name":"[合十]","url":"https://i.postimg.cc/VkKHDk9W/image.png"},{"name":"[失望]","url":"https://i.postimg.cc/DyMX6VJb/image.png"},{"name":"[庆祝]","url":"https://i.postimg.cc/Qdvc8Ljr/image.png"},{"name":"[恐惧]","url":"https://i.postimg.cc/6QDcm28n/image.png"},{"name":"[无语]","url":"https://i.postimg.cc/Gt9pT2jg/image.png"},{"name":"[烟花]","url":"https://i.postimg.cc/bw1wt4QP/image.png"},{"name":"[爆竹]","url":"https://i.postimg.cc/V6VG1GZr/image.png"},{"name":"[生病]","url":"https://i.postimg.cc/XNxFZBnL/image.png"},{"name":"[發]","url":"https://i.postimg.cc/0ynhFfvm/image.png"},{"name":"[破涕为笑]","url":"https://i.postimg.cc/BZC5xwBx/image.png"},{"name":"[礼物]","url":"https://i.postimg.cc/rFQJLYd8/image.png"},{"name":"[福]","url":"https://i.postimg.cc/zfP6XGVG/image.png"},{"name":"[笑脸]","url":"https://i.postimg.cc/05HjRY8T/image.png"},{"name":"[脸红]","url":"https://i.postimg.cc/sgL4MQ9q/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"}
@@ -730,7 +742,8 @@
 
                     } else { // 文本消息
                         const contentWithEmojis = parseEmojis(item.content.replace(/\n/g, '<br>'));
-                        bubbleHtml = `<div class="bubble">${contentWithEmojis}</div>`;
+                        bubbleHtml = `<div class="bubble"><div>${contentWithEmojis}</div></div>`;
+
                     }
 
                     previewItemDiv.innerHTML = `<img src="${user.avatar}" alt="${user.nickname}" class="avatar"><div class="message-content">${showNickname ? `<div class="nickname">${user.nickname}</div>` : ''}${bubbleHtml}</div>`;
