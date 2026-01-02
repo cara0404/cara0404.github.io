@@ -2,1288 +2,2429 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>捡手机文学生成器 (v7.6 导入导出预设版)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>雾川异闻录：404号事务所</title>
+    
+    <!-- 全局字体：Fusion Pixel -->
+    <link href="https://fontsapi.zeoseven.com/570/main/result.css" onload="this.rel='stylesheet'" rel="preload" as="style" crossorigin />
+    <noscript><link rel="stylesheet" href="https://fontsapi.zeoseven.com/570/main/result.css" /></noscript>
+
+    <!-- 开场白字体：Maoken Glitch Serif -->
+    <link href="https://fontsapi.zeoseven.com/831/main/result.css" onload="this.rel='stylesheet'" rel="preload" as="style" crossorigin />
+    <noscript><link rel="stylesheet" href="https://fontsapi.zeoseven.com/831/main/result.css" /></noscript>
+
     <style>
+        /* === 1-bit 像素恐怖风格定义 === */
         :root {
-            --wechat-bg: #ededed;
-            --primary-color: #07c160;
-            --border-color: #e0e0e0;
-            --editor-bg: #f7f7f7;
-            --font-color: #333;
-            --bubble-green: #95ec69;
-            --bubble-white: #ffffff;
-            --timestamp-color: #a0a0a0;
-            --input-bar-bg: #f7f7f7;
+            --bg: #050505;
+            --fg: #e0e0e0;
+            --dim: #666666;
+            --accent-red: #ff3333;
+            --accent-glitch: #0ff;
+            --accent-gold: #ffd700;
+            --border: 2px solid var(--fg);
+            
+            /* 字体变量定义 */
+            --font-pixel: "Fusion Pixel 12px M latin", monospace;
+            --font-intro: "Maoken Glitch Serif", serif;
+            --font-read: "Fusion Pixel 12px M latin", serif; 
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-            margin: 0; padding: 0; background-color: #f0f2f5; color: var(--font-color);
-            display: flex; flex-direction: column; height: 100vh;
-        }
-        h1, h2, h3 { margin: 0; padding: 0; font-weight: 600; }
-        .main-container { display: flex; flex: 1; min-height: 0; }
-        .editor-panel {
-            width: 450px; background-color: var(--editor-bg); padding: 20px;
-            border-right: 1px solid var(--border-color); overflow-y: auto;
-            display: flex; flex-direction: column; gap: 20px;
-        }
-        .preview-panel {
-            flex: 1; padding: 20px; display: flex; justify-content: center;
-            align-items: flex-start; overflow-y: auto; background-color: #f0f2f5;
-        }
-        @media screen and (max-width: 900px) {
-            body { height: auto; min-height: 100vh; }
-            .main-container { flex-direction: column-reverse; }
-            .preview-panel {
-                padding: 20px 10px 10px 10px; align-items: center;
-                border-bottom: 2px solid #e0e0e0; flex-shrink: 0;
-                background-color: var(--editor-bg);
-            }
-            .phone-frame {
-                width: 100%; max-width: 420px; height: 70vh;
-                max-height: 812px; border-radius: 12px;
-            }
-            .editor-panel { width: auto; border-right: none; height: auto; }
-            .editor-panel h1 { font-size: 24px; }
-        }
-        .editor-section {
-            background-color: #fff; border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 15px;
-        }
-        .editor-section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .editor-section h3 { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        .editor-section > h3 { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
 
-        .form-group { margin-bottom: 15px; position: relative; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
-        .form-group input[type="text"], .form-group select, .form-group textarea {
-            width: 100%; padding: 8px; border: 1px solid var(--border-color);
-            border-radius: 4px; box-sizing: border-box; font-size: 14px;
-        }
-        textarea { resize: vertical; min-height: 60px; }
-        .user-profile {
-            display: flex; gap: 15px; align-items: flex-start; margin-bottom: 15px;
-            padding-bottom: 15px; border-bottom: 1px dashed var(--border-color);
-        }
-        .user-profile:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .user-avatar-editor { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .user-avatar-editor img {
-            width: 50px; height: 50px; border-radius: 5px;
-            object-fit: cover; border: 1px solid var(--border-color);
-        }
-        .user-avatar-editor input[type="file"] { display: none; }
-        .user-avatar-editor .upload-btn { font-size: 12px; cursor: pointer; color: var(--primary-color); }
-        .user-details { flex: 1; }
-        .user-details .form-group { margin-bottom: 8px; }
-        .user-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .self-selector { display: flex; align-items: center; gap: 5px; font-size: 14px; }
-        .message-item-editor {
-            border: 1px solid var(--border-color); border-radius: 6px; padding: 0;
-            margin-bottom: 10px; position: relative;
-        }
-        .action-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
-        .btn {
-            padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;
-            font-size: 14px; font-weight: 500; transition: background-color 0.2s;
-        }
-        .btn-sm { padding: 4px 8px; font-size: 12px; }
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-primary:hover { background-color: #06ad56; }
-        .btn-secondary { background-color: #f0f0f0; color: #333; border: 1px solid var(--border-color); }
-        .btn-secondary:hover { background-color: #e6e6e6; }
-        .btn-danger { background-color: #ff4d4f; color: white; }
-        .btn-danger:hover { background-color: #d9363e; }
-        .phone-frame {
-            width: 375px; height: 812px;
-            background-color: var(--wechat-bg); border: 1px solid #ccc; border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;
-        }
-        .chat-header {
-            background-color: var(--wechat-bg); padding: 10px 15px; border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            position: relative; display: flex; align-items: center; justify-content: center; height: 24px;
-        }
-        .back-arrow { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); }
-        .more-options-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
-        .chat-title-preview-text { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .chat-messages {
-            flex: 1; padding: 20px 10px; overflow-y: auto;
-            -ms-overflow-style: none; scrollbar-width: none;
-        }
-        .chat-messages::-webkit-scrollbar { display: none; }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        .message-item {
-            display: flex;
-            margin-bottom: 21px;
-            align-items: flex-start;
-        }
-        .message-item .avatar { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; }
-
-        .message-content {
-            max-width: 70%;
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg);
+            color: var(--fg);
+            /* 修改：全局应用 Fusion Pixel */
+            font-family: "Fusion Pixel 12px M latin";
+            font-weight: normal;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            font-size: 18px;
         }
+
+
+        /* 扫描线与噪点 */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px; pointer-events: none; z-index: 9998; opacity: 0.3;
+        }
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 9999; opacity: 0.4;
+        }
+
+        /* === 通用组件 === */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column;
+            padding: 20px; z-index: 10;
+            background: var(--bg);
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        .screen.active { display: flex; opacity: 1; }
+
+        h1, h2 { text-transform: uppercase; letter-spacing: 2px; text-align: center; margin: 0 0 20px 0; font-weight: normal; }
         
-        .nickname { font-size: 12px; color: #888; margin-bottom: 4px; }
-        
-        .message-content .bubble {
-            padding: 10px 12px;
-            border-radius: 6px;
+        .pixel-btn {
+            background: transparent; color: var(--fg);
+            border: var(--border);
+            padding: 10px 15px; margin: 5px 0;
+            font-family: var(--font-pixel);
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
             position: relative;
-            word-break: break-word;
-            white-space: pre-wrap;
-            line-height: 20px;
+            box-shadow: 0 0 5px rgba(255,255,255,0.1);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .pixel-btn:active { transform: scale(0.98); }
+        .pixel-btn:disabled { border-color: var(--dim); color: var(--dim); cursor: not-allowed; }
+        .pixel-btn:hover:not(:disabled) { background: var(--fg); color: var(--bg); box-shadow: 0 0 15px var(--fg); }
+
+        .pixel-input {
+            width: 100%; background: rgba(255,255,255,0.05); color: var(--fg);
+            border: 1px solid var(--dim); padding: 12px;
+            font-family: var(--font-read); font-size: 1rem; margin-bottom: 15px;
+            border-radius: 0; outline: none;
+        }
+        .pixel-input:focus { border-color: var(--accent-glitch); box-shadow: 0 0 8px rgba(0,255,255,0.2); }
+
+        /* === 0. 开场动画层 === */
+        #intro-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 20000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 2rem; cursor: pointer;
+        }
+        .intro-text {
+            /* 修改：开场白应用 Maoken Glitch Serif */
+            font-family: "Maoken Glitch Serif"; 
+            font-size: 1.8rem; line-height: 1.6;
+            max-width: 800px; text-align: left; opacity: 0;
+            transform: translateY(20px); transition: all 0.8s ease-out;
+            white-space: pre-wrap; text-shadow: 0 0 5px rgba(255,255,255,0.3);
+        }
+        .intro-text.show { opacity: 1; transform: translateY(0); }
+        .highlight-scary { color: var(--accent-red); font-weight: bold; display: inline-block; animation: shake 3s infinite; }
+        .highlight-neon { color: #fff; text-shadow: 0 0 10px var(--accent-glitch), 0 0 20px var(--accent-glitch); }
+        .intro-hint { position: absolute; bottom: 30px; font-size: 1rem; color: var(--dim); animation: blink 1.5s infinite; }
+
+        /* === 1. 标题画面 === */
+        #title-screen { justify-content: center; align-items: center; }
+        .logo-box {
+            border: 4px double var(--fg); padding: 30px; margin-bottom: 50px;
+            text-align: center; position: relative;
+            background: rgba(0,0,0,0.8);
+        }
+        .logo-text { font-size: 3.5rem; letter-spacing: 5px; text-shadow: 2px 2px 0 #333; position: relative; }
+        .logo-text::after {
+            content: "雾川异闻录"; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.5; color: var(--accent-glitch); z-index: -1; animation: glitch-anim 2.5s infinite;
         }
 
-.message-content .bubble:not(.bubble-image):not(.bubble-voice) {
-    width: 100%;
-    box-sizing: border-box; /* 加上这个好习惯，防止padding把它撑破 */
-    display: flex;
-    align-items: center;
-    min-height: 40px;
-}
+        /* === 2. 设置弹窗 === */
+        #settings-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 30000;
+            display: none; flex-direction: column; padding: 20px; justify-content: center;
+        }
+        .status-msg { font-size: 0.9rem; margin-top: 10px; min-height: 1.2em; font-family: var(--font-pixel); }
+        .success { color: #0f0; } .error { color: #f00; }
 
-        .received { flex-direction: row; }
+        /* === 3. 角色创建 & 档案生成 === */
+        #char-screen { justify-content: center; }
+        .form-container { max-width: 500px; margin: 0 auto; width: 100%; }
+        label { display: block; margin-bottom: 5px; color: var(--dim); font-size: 0.9rem; }
         
-        .received > .message-content { 
-            margin-left: 10px; 
-            align-items: flex-start; 
+        /* 档案卡片样式 */
+        #persona-screen { 
+            justify-content: center; 
+            align-items: center; 
+            overflow-y: auto; /* 增加滚动，防止卡片太长超出屏幕 */
+            padding: 40px 20px; 
         }
-        
-        .received .bubble { background-color: var(--bubble-white); color: #000; }
-        
-        .received .bubble::before {
-            content: ''; position: absolute; left: -8px; top: 14px;
-            width: 0; height: 0; border-style: solid; border-width: 6px 8px 6px 0;
-            border-color: transparent var(--bubble-white) transparent transparent;
-        }
-        .sent { flex-direction: row-reverse; }
-        
-        .sent > .message-content { 
-            margin-right: 10px; 
-            align-items: flex-end;
-        }
-        .sent .bubble { background-color: var(--bubble-green); color: #000; }
-        .sent .bubble::before {
-            content: ''; position: absolute; right: -8px; top: 14px;
-            width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 8px;
-            border-color: transparent transparent transparent var(--bubble-green);
-        }
-        
-        .timestamp {
-            text-align: center;
-            margin: 11px 0;
-            color: var(--timestamp-color);
-            font-size: 12px;
-        }
-        .chat-footer {
-            padding: 8px 10px; background-color: var(--input-bar-bg); border-top: 1px solid var(--border-color);
-            display: flex; align-items: center; gap: 10px;
-        }
-        .chat-footer svg { width: 28px; height: 28px; color: #333; }
-        .text-input-mock { flex: 1; height: 36px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 6px; }
-        .bubble-image {
-            background-color: transparent !important; padding: 0 !important;
-            border-radius: 8px; overflow: hidden; max-width: 150px; line-height: 0;
-        }
-        .bubble-image::before { display: none !important; }
-        .message-image-preview { display: block; width: 100%; height: auto; vertical-align: bottom; }
-        .message-editor-image-controls { display: flex; flex-direction: column; gap: 8px; }
-        .message-editor-image-controls img {
-            max-width: 100px; max-height: 100px;
-            border-radius: 4px; border: 1px solid var(--border-color); object-fit: cover;
-        }
-        .message-item-editor {
-            transition: background-color 0.2s;
-        }
-        .message-editor-header {
-            display: flex; align-items: center; gap: 10px; padding: 10px;
-            cursor: pointer; border-radius: 6px; background-color: #f9f9f9;
-            position: relative; border: 1px solid transparent; transition: border-color 0.2s;
-        }
-        .message-item-editor:not(.collapsed) .message-editor-header {
-            border-color: var(--border-color); border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0; border-bottom: none;
-        }
-        .message-editor-header:hover { background-color: #f0f0f0; }
-        .message-editor-avatar {
-            width: 24px; height: 24px; border-radius: 4px;
-            object-fit: cover; flex-shrink: 0;
-        }
-        .message-editor-summary {
-            flex-grow: 1; white-space: nowrap; overflow: hidden;
-            text-overflow: ellipsis; font-size: 14px; color: #555;
-        }
-        .message-editor-summary .summary-type { font-weight: 600; color: #000; }
-        .message-editor-body {
-            padding: 15px 10px 5px 10px; border: 1px solid var(--border-color);
-            border-top: none; border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-            overflow: hidden;
-            transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out, border 0.35s ease-in-out;
-            max-height: 500px;
-        }
-        .message-editor-body.overflow-visible {
-            overflow: visible;
-        }
-        .message-item-editor.collapsed .message-editor-body {
-            max-height: 0; padding-top: 0; padding-bottom: 0; border: none;
-        }
-        .message-item-editor.collapsed .message-editor-header {
-             border: 1px solid var(--border-color);
-        }
-        .message-editor-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .message-editor-controls button {
-            border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: background-color 0.2s;
-        }
-        .message-editor-controls .copy-btn {
-            background-color: #b8c5d0;
-            color: white;
-        }
-        .message-editor-controls .copy-btn:hover {
-            background-color: #98a5b0;
-        }
-        .message-editor-controls .delete-btn {
-            background: #ff4d4f;
-            color: white;
-            font-size: 16px;
-            font-weight: 400;
-            line-height: 22px;
-        }
-        .message-editor-controls .delete-btn:hover {
-            background: #d9363e;
-        }
-        .drag-handle {
-            cursor: grab;
-            color: #b0b0b0;
-            padding: 0 5px;
-        }
-        .sortable-ghost {
-            background: #f0f8ff;
-            border: 2px dashed var(--primary-color);
-            opacity: 0.6;
-        }
-        .sortable-drag {
-            opacity: 0.9;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-        }
-        .sortable-drag .drag-handle {
-            cursor: grabbing;
-        }
-        .wechat-emoji {
-            width: 20px;
-            height: 20px;
-            vertical-align: middle;
-        }
-        .bubble .wechat-emoji {
-            width: 20px;
-            height: 20px;
-        }
-        .emoji-btn {
-            cursor: pointer;
-            font-size: 20px;
-            color: #888;
-        }
-        .form-group-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .emoji-picker {
+        .dossier-card {
+            border: 2px solid var(--fg); 
+            padding: 35px; /* 内边距加大，呼吸感更强 */
+            width: 100%; 
+            max-width: 700px; /* 宽度加大，让阅读更舒适 */
+            background: rgba(10,10,10,0.98); /* 背景更深一点 */
+            position: relative;
+            box-shadow: 0 0 40px rgba(255,255,255,0.1); /* 阴影加重 */
             display: none;
-            position: absolute;
-            top: 100%;
-            margin-top: 5px;
-            right: 0;
-            width: 300px;
-            height: 200px;
-            background-color: #fff;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 10px;
-            overflow-y: auto;
-            z-index: 100;
-            grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
-            gap: 5px;
+            margin: auto;
         }
-        .emoji-picker.show {
-            display: grid;
+        .dossier-header { 
+            border-bottom: 3px solid var(--fg); /* 线条加粗 */
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+            display: flex; justify-content: space-between; align-items: flex-end;
         }
-        .emoji-picker img {
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            padding: 2px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
+        .dossier-title { 
+            font-size: 2.2rem; /* 标题显著加大 */
+            font-weight: bold; 
+            background: var(--fg); 
+            color: var(--bg); 
+            padding: 5px 15px; 
+            letter-spacing: 2px;
         }
-        .emoji-picker img:hover {
-            background-color: #f0f0f0;
+        .dossier-body { 
+            font-family: var(--font-pixel); /* 统一用像素字体，清晰度更高 */
+            line-height: 1.9; /* 行高加大，防止文字挤在一起 */
+            font-size: 1.4rem; /* 正文显著加大！ */
+            margin-bottom: 35px; 
+            text-align: justify; /* 两端对齐 */
+            color: #eee;
         }
-        .bubble-voice {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            min-width: 70px;
-            max-width: 240px; 
-            transition: width 0.3s ease;
+        
+        /* 属性网格 */
+        .stat-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; /* 间距加大 */
+            border-top: 2px dashed var(--dim); padding-top: 25px;
+        }
+        .stat-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            font-family: var(--font-pixel); 
+            font-size: 1.5rem; /* 属性文字加大 */
+        }
+        .stat-label { color: var(--dim); }
+        .stat-value { color: var(--accent-glitch); font-weight: bold; font-size: 1.6rem; }
+        .stat-mys { color: #a0f; text-shadow: 0 0 8px #a0f; }
+
+        .loading-text { font-size: 1.5rem; animation: blink 0.5s infinite; text-align: center; }
+
+        /* === 4. 游戏主界面 (AVG) === */
+        #game-screen { padding: 0; }
+        .top-bar {
+            height: 70px; border-bottom: var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 10px; font-size: 1.1rem; background: #000;
+            z-index: 30; /* 顶栏层级最高 */
+            position: relative;
+        }
+        .bar-left { display: flex; flex-direction: column; justify-content: center; }
+        .time-box { font-size: 1.2rem; color: var(--accent-gold); display: flex; align-items: center; gap: 5px; }
+        .hp-san-box { display: flex; gap: 10px; font-family: var(--font-pixel); font-size: 0.9rem; color: var(--dim); }
+        .val-label { color: var(--fg); font-weight: bold; }
+        .money-label { color: var(--accent-glitch); margin-left: 10px; }
+        
+        .menu-btn {
+            background: none; border: 1px solid var(--dim); color: var(--fg);
+            cursor: pointer; font-family: var(--font-pixel); padding: 5px 8px;
+            font-size: 1rem; text-transform: uppercase;
+        }
+        .menu-btn:hover { border-color: var(--fg); color: var(--accent-glitch); }
+
+        .visual-area {
+            flex: 1; 
+            /* 修改：不再强制居中，改为相对定位布局 */
+            display: block; 
+            border-bottom: var(--border); 
+            background: #111; 
+            position: relative; 
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease-in-out;
+        }
+        /* 图片遮罩 */
+        .visual-area::before {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); /* 调低一点透明度，让图更亮一点 */
+            z-index: 1;
+        }
+        
+        /* 修改：地点标题改为左上角悬浮标签 */
+        .scene-title { 
+            z-index: 5; 
+            position: absolute; 
+            top: 15px; 
+            left: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid var(--dim);
+            padding: 5px 15px;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            color: var(--accent-glitch);
+            box-shadow: 2px 2px 0 #000;
         }
 
-        /* ✨✨✨ 这里是新的核心修正！ ✨✨✨ */
-        /* 上次的问题在于，通用的 .bubble 样式优先级更高，覆盖了我们的修改。 */
-        /* 这次我们用 .bubble.bubble-voice 这个更精确、优先级更高的“选择器”来指定样式，确保它能生效！ */
-        .bubble.bubble-voice {
-            /* 重新设置内边距：上下6.5px, 左右12px */
-            /* 计算公式: (40px头像高度 - 27px图标高度) / 2 = 6.5px */
-            padding: 6.5px 12px;
+        /* 事务所专用UI */
+        .office-hud {
+            position: absolute; bottom: 15px; right: 15px;
+            display: none; gap: 10px;
+            z-index: 5; /* 保证在遮罩之上 */
+        }
+        .office-hud.active { display: flex; }
+
+        .dialogue-box {
+            height: 40%; min-height: 250px; 
+            padding: 40px; /* 内边距加大，文字不贴边 */
+            display: flex; flex-direction: column; position: relative; cursor: pointer;
+            background: #000;
+            z-index: 20; 
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5); 
+        }
+        .speaker-name {
+            position: absolute; 
+            top: -24px; /* 配合大字号，位置上移 */
+            left: 30px;
+            background: var(--bg); border: var(--border);
+            padding: 5px 20px; /* 名字框加宽 */
+            font-weight: bold; 
+            font-size: 1.4rem; /* 名字加大 */
+            z-index: 25; 
+            letter-spacing: 2px; /* 名字字间距拉开，更有气势 */
+        }
+        .text-content { 
+            font-family: var(--font-read); 
+            font-size: 1.6rem; /* === 核心修改：正文显著加大！ === */
+            line-height: 1.6; /* 行高适配大字号 */
+            flex: 1; 
+            letter-spacing: 1px; /* 增加字间距，防止像素字粘连 */
+            color: #eee; /* 字体颜色提亮 */
+            text-shadow: 2px 2px 0 #000; /* 加一点阴影，让字更立体 */
+        }
+        .click-indicator { text-align: right; animation: blink 1s infinite; font-size: 1.5rem; margin-top: 10px; visibility: hidden; color: var(--accent-glitch); }
+        .click-indicator.show { visibility: visible; }
+
+        .choices-overlay {
+            position: absolute; 
+            top: 45%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            width: 90%; 
+            max-width: 500px; 
+            bottom: auto !important; 
+            background: rgba(0,0,0,0.98); 
+            padding: 25px;
+            border: var(--border); 
+            display: none; 
+            flex-direction: column; 
+            gap: 12px;
+            z-index: 100; 
+            box-shadow: 0 0 30px rgba(0,0,0,0.8); 
         }
 
-        .sent .bubble-voice {
-            flex-direction: row-reverse;
+        .choices-overlay.active { display: flex; }
+
+        /* === 5. 覆盖层 (状态/物品/地图) === */
+        .overlay-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 200;
+            display: none; flex-direction: column; padding: 20px;
         }
-        .bubble-voice .duration {
-            font-size: 14px;
+        .overlay-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--fg); padding-bottom: 10px; }
+        .overlay-content { flex: 1; overflow-y: auto; padding-right: 5px; }
+        
+        /* 物品栏样式 */
+        .inventory-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .item-card { 
+            border: 1px solid var(--dim); padding: 10px; display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(255,255,255,0.05);
         }
-        .bubble-voice .voice-icon-svg {
-            width: 27px;
-            height: 27px;
-            flex-shrink: 0;
+        .item-info { flex: 1; }
+        .item-name { font-weight: bold; font-size: 1.1rem; color: var(--accent-glitch); }
+        .item-desc { font-size: 0.9rem; color: #aaa; font-family: var(--font-read); margin-top: 5px; }
+        .item-count { font-size: 0.9rem; color: var(--dim); margin-left: 5px; }
+        .item-actions { margin-left: 10px; }
+        
+        .insane-item .item-name { color: var(--accent-red); animation: shake 2s infinite; }
+        .insane-item .item-desc { color: #844; font-style: italic; letter-spacing: 1px; }
+        .key-item { border-color: #a0f; }
+        .key-item .item-name { color: #a0f; }
+
+        /* 地图样式 */
+        .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .map-node {
+            border: 2px solid var(--dim); padding: 15px; text-align: center; cursor: pointer;
+            transition: all 0.3s; opacity: 0.7; position: relative;
         }
-        .transcription-wrapper {
-            margin-top: 8px;
+        .map-node:hover { border-color: var(--fg); opacity: 1; background: rgba(255,255,255,0.1); }
+        .map-node.current { border-color: var(--accent-glitch); box-shadow: 0 0 10px var(--accent-glitch); opacity: 1; }
+        .map-node.locked { border-style: dashed; opacity: 0.3; cursor: not-allowed; }
+        .map-tag { 
+            position: absolute; top: -10px; right: -5px; background: #000; border: 1px solid var(--fg); 
+            font-size: 0.8rem; padding: 2px 5px; color: var(--accent-gold);
         }
-        .bubble-transcription { }
-        .bubble-transcription::before {
-            display: none !important;
+
+        /* 手机界面样式 (美化版) */
+        .app-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;
+            padding: 20px 10px;
+            transition: opacity 0.3s;
         }
-        .received .bubble-transcription {
-            background-color: var(--bubble-white);
+        .app-grid.hidden { display: none; opacity: 0; }
+
+        .app-icon {
+            display: flex; flex-direction: column; align-items: center; cursor: pointer;
+            transition: transform 0.2s;
         }
-        .sent .bubble-transcription {
-            background-color: var(--bubble-green);
+        .app-icon:hover { transform: scale(1.1); }
+        .app-symbol {
+            width: 55px; height: 55px; border: 2px solid var(--fg); border-radius: 14px;
+            display: flex; justify-content: center; align-items: center; font-size: 1.8rem;
+            margin-bottom: 8px; background: rgba(255,255,255,0.05);
+            box-shadow: 0 4px 0 var(--dim); /* 像素立体感 */
         }
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-weight: normal;
-            font-size: 14px;
+        .app-icon:active .app-symbol { transform: translateY(4px); box-shadow: none; }
+        .app-icon:hover .app-symbol { border-color: var(--accent-glitch); color: var(--accent-glitch); }
+        .app-name { font-size: 0.8rem; color: var(--dim); font-family: var(--font-pixel); letter-spacing: 1px; }
+
+        /* 手机应用内容容器 */
+        #phone-display-area {
+            display: none; flex-direction: column; height: 100%;
+            animation: slideUp 0.3s ease-out;
         }
-        .preset-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .app-header {
+            display: flex; align-items: center; border-bottom: 1px solid var(--dim);
+            padding-bottom: 10px; margin-bottom: 15px;
         }
-        .preset-controls select {
-            flex-grow: 1;
+        .back-btn {
+            background: none; border: none; color: var(--accent-glitch); font-family: var(--font-pixel);
+            font-size: 1.2rem; cursor: pointer; margin-right: 15px; padding: 0 5px;
         }
-        .import-preset-label {
-            padding: 4px 8px;
-            font-size: 12px;
-            background-color: #f0f0f0;
-            color: #333;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-            display: inline-block;
+        .back-btn:hover { text-decoration: underline; }
+        .app-title { font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; }
+
+        /* === APP 特定样式模板 (大字号舒适版) === */
+        
+        /* 1. 短信风格 */
+        .sms-container { display: flex; flex-direction: column; gap: 20px; } /* 间距加大 */
+        .sms-card {
+            border: 1px solid var(--dim); background: rgba(0,0,0,0.6);
+            padding: 20px; /* 内边距加大 */
+            position: relative;
+            border-left: 4px solid var(--fg);
+        }
+        .sms-card.urgent { border-color: var(--accent-red); border-left-width: 6px; background: rgba(50,0,0,0.15); }
+        .sms-sender { font-size: 1.1rem; /* 字体加大 */ color: var(--accent-glitch); margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .sms-time { color: var(--dim); font-size: 0.9rem; }
+        .sms-body { font-family: var(--font-read); font-size: 1.25rem; /* 正文加大 */ line-height: 1.6; color: #ddd; }
+
+        /* 2. 新闻风格 */
+        .news-card {
+            border: 2px double var(--fg); padding: 25px; /* 内边距加大 */ background: #111;
+            text-align: justify;
+        }
+        .news-headline { 
+            font-size: 1.6rem; /* 标题加大 */ font-weight: bold; border-bottom: 1px solid var(--fg); 
+            padding-bottom: 12px; margin-bottom: 15px; color: var(--accent-gold);
+        }
+        .news-body { font-family: var(--font-read); font-size: 1.2rem; /* 正文加大 */ line-height: 1.8; color: #ccc; }
+
+        /* 3. 外卖小票风格 (保持大尺寸) */
+        .receipt-card {
+            background: #fff; color: #000; 
+            padding: 35px; 
+            font-family: 'Courier New', monospace; width: 100%; 
+            max-width: 450px; 
+            margin: 20px auto;
+            box-shadow: 0 0 25px rgba(255,255,255,0.15); 
+            transform: rotate(-1deg);
+            font-size: 1.15rem; 
             line-height: 1.5;
         }
-        .import-preset-label:hover {
-            background-color: #e6e6e6;
+        .receipt-header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px; font-weight: bold; }
+        .receipt-item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 1.1rem; } /* 条目加大 */
+        .receipt-total { border-top: 2px solid #000; margin-top: 15px; padding-top: 10px; text-align: right; font-weight: bold; font-size: 1.4rem; } /* 总价加大 */
+        .receipt-footer { text-align: center; margin-top: 20px; font-size: 0.9rem; color: #555; }
+
+        /* 4. 树洞风格 */
+        .sns-post {
+            border-bottom: 1px solid #333; padding: 20px 0; /* 间距加大 */
         }
+        .sns-user { font-weight: bold; color: #aaa; font-size: 1.1rem; /* 用户名加大 */ margin-bottom: 8px; }
+        .sns-content { font-family: var(--font-read); font-size: 1.25rem; /* 内容加大 */ color: var(--fg); line-height: 1.6; }
+        .sns-actions { margin-top: 12px; font-size: 0.95rem; color: var(--dim); display: flex; gap: 20px; }
+
+
+        /* 状态面板特有样式 */
+        .status-full-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .attr-row { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 10px 0; }
+        .attr-name { color: var(--fg); }
+        .attr-desc { font-size: 0.8rem; color: var(--dim); margin-left: 10px; }
+        .attr-val { color: var(--accent-glitch); font-size: 1.4rem; font-family: var(--font-pixel); }
+        
+        .status-bio {
+            margin-bottom: 20px; padding-bottom: 20px; border-bottom: 2px dashed var(--dim);
+        }
+        .bio-text { font-size: 1rem; color: #aaa; margin-top: 10px; font-style: italic; }
+
+        /* === 动画 === */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes shake { 0% { transform: translate(0, 0); } 2% { transform: translate(-1px, 1px); } 4% { transform: translate(1px, -1px); } 6% { transform: translate(0, 0); } 100% { transform: translate(0, 0); } }
+        @keyframes glitch-anim { 0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 1px); } 5% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -1px); } 10% { clip-path: inset(40% 0 50% 0); transform: translate(-1px, 2px); } 15% { clip-path: inset(90% 0 5% 0); transform: translate(1px, -2px); } 20% { clip-path: inset(100% 0 0 0); transform: translate(0, 0); } 100% { clip-path: inset(100% 0 0 0); transform: translate(0, 0); } }
+        .glitch-text { animation: glitch 0.3s infinite; }
+        @keyframes glitch { 0% { transform: translate(0) } 20% { transform: translate(-2px, 2px) } 40% { transform: translate(-2px, -2px) } 60% { transform: translate(2px, 2px) } 80% { transform: translate(2px, -2px) } 100% { transform: translate(0) } }
+
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="editor-panel">
-            <h1>捡手机文学生成器BY那那</h1>
-            <p style="margin-top:-5px; font-size: 14px; color: #666;">在这里编辑你的故事，右侧实时预览。</p>
+
+    <div class="scanlines"></div>
+
+    <!-- 0. 开场动画层 -->
+    <div id="intro-layer" onclick="nextSlide()">
+        <div id="intro-content" class="intro-text"></div>
+        <div class="intro-hint">[ 点击屏幕 继续 ]</div>
+    </div>
+
+    <!-- 1. 标题画面 -->
+    <div id="title-screen" class="screen">
+        <div class="logo-box">
+            <div class="logo-text">雾川异闻录</div>
+            <div style="font-size: 1.2rem; margin-top: 10px; letter-spacing: 3px; color: var(--dim);">AGENCY 404</div>
+        </div>
+        
+        <div style="width: 100%; max-width: 350px;">
+            <!-- 新增：读取存档按钮 -->
+            <button class="pixel-btn" id="btn-continue" onclick="loadGame()" style="width: 100%; display: none; border-color: var(--accent-gold); color: var(--accent-gold); margin-bottom: 15px;">📂 读取存档 (CONTINUE)</button>
             
-            <div class="editor-section">
-                <div class="editor-section-header">
-                    <h3>预设管理</h3>
-                    <div class="action-buttons">
-                        <label for="import-presets-input" id="import-presets-btn" class="import-preset-label" title="从文件导入预设">导入</label>
-                        <input type="file" id="import-presets-input" accept=".json" style="display: none;">
-                        <button id="export-presets-btn" class="btn btn-secondary btn-sm" title="将所有预设导出为文件">导出</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="preset-selector">加载/管理预设</label>
-                    <div class="preset-controls">
-                        <select id="preset-selector">
-                            <option value="">-- 选择一个预设 --</option>
-                        </select>
-                        <button id="save-preset-btn" class="btn btn-primary btn-sm" title="将当前的标题和用户保存为新预设">保存</button>
-                        <button id="delete-preset-btn" class="btn btn-danger btn-sm" title="删除选中的预设">删除</button>
-                    </div>
+            <button class="pixel-btn" onclick="openSettings()" style="width: 100%">系统设置 / API</button>
+            <button class="pixel-btn" id="btn-enter-town" onclick="goToCharCreation()" disabled style="width: 100%">进入公寓 (NEW GAME)</button>
+            <div id="api-status-indicator" style="text-align: center; font-size: 0.9rem; color: var(--dim); margin-top: 10px;">[ ⚠️ 神经连接未就绪 ]</div>
+        </div>
+    </div>
+
+
+    <!-- 2. 设置/API 界面 -->
+    <div id="settings-modal">
+        <h2>/// 神经连接设置 ///</h2>
+        <div style="max-width: 500px; width: 100%; margin: 0 auto;">
+            <!-- 新增：存档管理区域 -->
+            <div style="border: 1px dashed var(--dim); padding: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.05);">
+                <div style="color: var(--accent-gold); margin-bottom: 10px;">[ 记忆数据管理 ]</div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="pixel-btn" onclick="saveGame()" style="flex: 1;">💾 保存当前进度</button>
+                    <button class="pixel-btn" onclick="deleteSave()" style="flex: 1; border-color: var(--accent-red); color: var(--accent-red);">🗑️ 删除存档</button>
                 </div>
             </div>
 
-            <div class="editor-section">
-                <div class="editor-section-header">
-                    <h3>全局设置</h3>
-                </div>
-                <div class="form-group">
-                    <label for="chat-title-editor">聊天标题 (对方昵称/群名称)</label>
-                    <input type="text" id="chat-title-editor">
-                </div>
-                <div class="action-buttons">
-                    <button id="fill-example-btn" class="btn btn-secondary">填充示例</button>
-                    <button id="reset-btn" class="btn btn-danger">重置所有</button>
-                    <button id="export-long-btn" class="btn btn-primary">导出长截图</button>
-                    <button id="export-current-btn" class="btn btn-primary">导出当前页</button>
-                </div>
+            <label>API Base URL</label>
+            <input type="text" class="pixel-input" id="api-url" value="https://api.openai.com/v1">
+            <label>API Key</label>
+            <input type="password" class="pixel-input" id="api-key" placeholder="sk-...">
+            <label>Model</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" class="pixel-input" id="api-model" value="gpt-3.5-turbo" placeholder="模型名称">
+                <button class="pixel-btn" onclick="fetchModels()" style="width: 100px; margin: 0 0 15px 0; font-size: 1rem;">列表</button>
             </div>
-            <div class="editor-section">
-                <div class="editor-section-header">
-                    <h3>聊天用户管理</h3>
-                    <button id="clear-users-btn" class="btn btn-danger btn-sm">清空用户</button>
-                </div>
-                <div id="user-profiles-editor"></div>
-                <div class="action-buttons">
-                    <button id="add-user-btn" class="btn btn-primary">添加用户</button>
+            <button class="pixel-btn" onclick="testConnection()" style="width: 100%">⚡ 测试连接信号</button>
+            <div id="test-msg" class="status-msg"></div>
+            <div style="margin-top: 30px; display: flex; gap: 20px;">
+                <button class="pixel-btn" onclick="closeSettings()" style="flex: 1">返回</button>
+                <button class="pixel-btn" onclick="saveSettings()" style="flex: 1; border-color: var(--accent-glitch); color: var(--accent-glitch);">保存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 角色创建 -->
+    <div id="char-screen" class="screen">
+        <h2>/// 登记入住 ///</h2>
+        <div class="form-container">
+            <div style="text-align: right; margin-bottom: 10px;">
+                <button class="pixel-btn" onclick="randomizeInputs()" style="font-size: 0.9rem; padding: 5px 10px; border-color: var(--accent-gold); color: var(--accent-gold);">🎲 随机生成档案</button>
+            </div>
+            <label>姓名 / 代号</label>
+            <input type="text" class="pixel-input" id="char-name" placeholder="你的名字">
+            <label>前职 (影响初始属性)</label>
+            <input type="text" class="pixel-input" id="char-job" placeholder="例: 私家侦探, 医生, 程序员...">
+            <label>额外特质 / 秘密 (可选)</label>
+            <input type="text" class="pixel-input" id="char-extra" placeholder="例: 怕黑, 阴阳眼, 欠了巨款...">
+            <button class="pixel-btn" onclick="generatePersona()" style="margin-top: 30px; width: 100%">提交档案 & 生成人设</button>
+        </div>
+    </div>
+
+    <!-- 3.5 档案生成展示页 -->
+    <div id="persona-screen" class="screen">
+        <div id="persona-loading" class="loading-text">
+            正在检索档案库...<br>
+            <span style="font-size: 1rem; color: var(--dim)">ANALYZING SOUL DATA...</span>
+        </div>
+
+        <div id="persona-result" class="dossier-card">
+            <div class="dossier-header">
+                <div class="dossier-title">INVESTIGATOR</div>
+                <div style="text-align: right;">
+                    <div id="dossier-name">NAME: ???</div>
+                    <div id="dossier-job" style="color: var(--dim)">JOB: ???</div>
                 </div>
             </div>
             
-            <div class="editor-section">
-                <div class="editor-section-header">
-                    <h3>聊天记录编辑</h3>
-                    <button id="clear-messages-btn" class="btn btn-danger btn-sm">清空聊天记录</button>
+            <div class="dossier-body" id="dossier-desc"></div>
+
+            <div class="stat-grid">
+                <div class="stat-item"><span class="stat-label">PHY 体魄</span> <span id="p-phy" class="stat-value">0</span></div>
+                <div class="stat-item"><span class="stat-label">DEX 灵巧</span> <span id="p-dex" class="stat-value">0</span></div>
+                <div class="stat-item"><span class="stat-label">INT 学识</span> <span id="p-int" class="stat-value">0</span></div>
+                <div class="stat-item"><span class="stat-label">CHA 魅力</span> <span id="p-cha" class="stat-value">0</span></div>
+                <div class="stat-item" style="grid-column: span 2; border-top: 1px solid #333; margin-top: 5px; padding-top: 5px;">
+                    <span class="stat-label" style="color: #a0f;">MYS 灵视 (核心)</span> 
+                    <span id="p-mys" class="stat-value stat-mys">0</span>
                 </div>
-                <div id="message-list-editor"></div>
-                <div class="action-buttons">
-                    <button id="add-self-message-btn" class="btn btn-primary">添加我的消息</button>
-                    <button id="add-other-message-btn" class="btn btn-primary" style="background-color: #555;">添加对方消息</button>
-                    <button id="add-timestamp-btn" class="btn btn-secondary">添加时间戳</button>
+                <div class="stat-item"><span class="stat-label">HP 生命</span> <span id="p-hp" class="stat-value">0</span></div>
+                <div class="stat-item"><span class="stat-label">SAN 理智</span> <span id="p-san" class="stat-value">0</span></div>
+            </div>
+
+            <button class="pixel-btn" onclick="realStartGame()" style="width: 100%; margin-top: 20px; border-color: var(--accent-red);">确认档案 & 入住</button>
+        </div>
+    </div>
+
+    <!-- 4. 游戏主界面 (AVG) -->
+    <div id="game-screen" class="screen">
+        <div class="top-bar">
+            <div class="bar-left">
+                <div class="time-box">
+                    <span id="day-num">DAY 1</span>
+                    <span id="time-icon">☀️</span>
+                    <span id="time-text" style="font-size: 0.9rem; color: var(--dim)">上午</span>
+                </div>
+                <div class="hp-san-box">
+                    <span>HP <span id="val-hp" class="val-label">100</span></span>
+                    <span>SAN <span id="val-san" class="val-label">60</span></span>
+                    <span class="money-label">¥ <span id="val-money">2000</span></span>
                 </div>
             </div>
+            <div style="display: flex; gap: 5px;">
+                <button class="menu-btn" onclick="showNote()">📓 NOTE</button>
+                <button class="menu-btn" onclick="showPhone()">📱 PHONE</button>
+                <button class="menu-btn" onclick="showMap()">MAP</button>
+                <button class="menu-btn" onclick="showInventory()">BAG</button>
+                <button class="menu-btn" onclick="showStatus()">STAT</button>
+                <button class="menu-btn" onclick="showLog()">LOG</button>
+                <button class="menu-btn" onclick="openSettings()" style="border-color: var(--dim);">⚙️</button>
+            </div>
         </div>
-        <div class="preview-panel">
-            <div class="phone-frame" id="capture-area">
-                <div class="chat-header">
-                    <div class="back-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: black;"><polyline points="15 18 9 12 15 6"></polyline></svg></div>
-                    <span class="chat-title-preview-text" id="chat-title-preview">聊天标题</span>
-                    <div class="more-options-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color: black;"><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="12" r="2"/></svg></div>
+
+        <div class="visual-area" id="visual-area">
+            <div class="scene-title" id="scene-title">404号事务所</div>
+            <!-- 事务所专用按钮 -->
+            <div id="office-hud" class="office-hud">
+                <button class="pixel-btn" onclick="handleOfficeAction('computer')">💻 电脑终端</button>
+                <button class="pixel-btn" onclick="handleOfficeAction('sleep')">🛏️ 睡觉 (结算)</button>
+            </div>
+        </div>
+
+        <div class="dialogue-box" onclick="nextText()">
+            <div class="speaker-name" id="speaker-name">???</div>
+            <div class="text-content" id="main-text"></div>
+            <div class="click-indicator" id="click-arrow">▼</div>
+        </div>
+
+        <!-- 自由行动输入栏 -->
+        <div id="free-action-bar" style="
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            background: #000; border-top: var(--border); padding: 10px;
+            display: flex; gap: 10px; z-index: 60;
+        ">
+            <input type="text" id="free-input" class="pixel-input" placeholder="输入你想做的事... (例: 仔细观察墙壁)" style="margin: 0; font-size: 0.9rem;">
+            <button class="pixel-btn" onclick="submitFreeAction()" style="margin: 0; width: 80px;">执行</button>
+        </div>
+
+        <!-- 选项层：注意 bottom: 60px 是为了避开上面的输入框 -->
+        <div class="choices-overlay" id="choices-layer" style="bottom: 60px;"></div>
+    </div>
+
+    <!-- 4.5 侦探手记 (Notebook) -->
+    <div id="note-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2>/// 调查手记 ///</h2>
+            <button class="pixel-btn" onclick="hideOverlay('note-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+        </div>
+        <div class="overlay-content">
+            <div style="margin-bottom: 20px;">
+                <div style="color: var(--accent-gold); border-bottom: 1px dashed var(--dim); padding-bottom: 5px; margin-bottom: 10px;">
+                    [ 当前目标 / CURRENT OBJECTIVE ]
                 </div>
-                <div class="chat-messages" id="chat-messages-container"></div>
-                <div class="chat-footer">
-                    <svg class="voice-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="50" cy="50" r="46.8" fill="none" stroke="currentColor" stroke-width="6.4"/>
-                        <g transform="translate(-5, 0)">
-                            <path d="M 35 50 L 43.91 41.09 A 12.6 12.6 0 0 1 43.91 58.91 Z" fill="currentColor"/>
-                            <g transform="translate(-2, 0)">
-                                <path d="M 55.35 32.89 A 26.6 26.6 0 0 1 55.35 67.11" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/>
-                                <path d="M 66.09 23.92 A 40.6 40.6 0 0 1 66.09 76.08" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/>
-                            </g>
-                        </g>
-                    </svg>
-                    <div class="text-input-mock"></div>
-                    <svg class="emoji-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99,2C6.47,2,2,6.48,2,12s4.47,10,9.99,10C17.52,22,22,17.52,22,12S17.52,2,11.99,2z M12,20c-4.42,0-8-3.58-8-8s3.58-8,8-8s8,3.58,8,8S16.42,20,12,20z M15.5,11c0.83,0,1.5-0.67,1.5-1.5S16.33,8,15.5,8S14,8.67,14,9.5S14.67,11,15.5,11z M8.5,11c0.83,0,1.5-0.67,1.5-1.5S9.33,8,8.5,8S7,8.67,7,9.5S7.67,11,8.5,11z M12,17.5c2.33,0,4.31-1.46,5.11-3.5H6.89C7.69,16.04,9.67,17.5,12,17.5z"></path></svg>
-                    <svg class="plus-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z"></path></svg>
+                <div id="quest-list" style="font-family: var(--font-read); line-height: 1.6; color: var(--fg);">
+                    <!-- 任务动态生成 -->
+                </div>
+            </div>
+
+            <div>
+                <div style="color: var(--accent-glitch); border-bottom: 1px dashed var(--dim); padding-bottom: 5px; margin-bottom: 10px;">
+                    [ 线索记录 / CLUES ]
+                </div>
+                <div id="clue-list" style="font-family: var(--font-read); font-size: 0.95rem; color: #aaa;">
+                    <!-- 线索动态生成 -->
+                    <div style="font-style: italic; color: var(--dim)">暂无关键线索...</div>
                 </div>
             </div>
         </div>
     </div>
 
+
+    <!-- 5. 状态面板 -->
+    <div id="status-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2>/// 调查员状态 ///</h2>
+            <button class="pixel-btn" onclick="hideOverlay('status-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+        </div>
+        <div class="overlay-content">
+            <div class="status-bio">
+                <div style="color: var(--accent-glitch); font-weight: bold;">[ 档案记录 ]</div>
+                <div id="s-bio-text" class="bio-text">暂无数据...</div>
+            </div>
+
+            <div class="status-full-grid">
+                <!-- 新增：声望显示 -->
+                <div class="attr-row" style="border-bottom: 2px solid var(--accent-gold);">
+                    <div><span class="attr-name" style="color: var(--accent-gold);">REP 声望</span><span class="attr-desc">知名度 / 委托等级</span></div>
+                    <div class="attr-val" id="s-rep" style="color: var(--accent-gold);">0</div>
+                </div>
+
+                <div class="attr-row">
+                    <div><span class="attr-name">PHY 体魄</span><span class="attr-desc">生命 / 战斗 / 抵抗</span></div>
+                    <div class="attr-val" id="s-phy">0</div>
+                </div>
+                <div class="attr-row">
+                    <div><span class="attr-name">DEX 灵巧</span><span class="attr-desc">闪避 / 潜行 / 开锁</span></div>
+                    <div class="attr-val" id="s-dex">0</div>
+                </div>
+                <div class="attr-row">
+                    <div><span class="attr-name">INT 学识</span><span class="attr-desc">调查 / 神秘学 / 黑客</span></div>
+                    <div class="attr-val" id="s-int">0</div>
+                </div>
+                <div class="attr-row">
+                    <div><span class="attr-name">CHA 魅力</span><span class="attr-desc">交涉 / 欺诈 / 情报</span></div>
+                    <div class="attr-val" id="s-cha">0</div>
+                </div>
+                <div class="attr-row" style="border-color: #a0f;">
+                    <div><span class="attr-name" style="color: #a0f;">MYS 灵视</span><span class="attr-desc">看见不可见之物 / SAN上限</span></div>
+                    <div class="attr-val" id="s-mys" style="color: #a0f;">0</div>
+                </div>
+                <div style="margin-top: 20px; border-top: 2px solid var(--fg); padding-top: 10px;">
+                    <div class="attr-row">
+                        <span class="attr-name">HP 当前生命</span>
+                        <span class="attr-val" id="s-hp">0</span>
+                    </div>
+                    <div class="attr-row">
+                        <span class="attr-name">SAN 当前理智</span>
+                        <span class="attr-val" id="s-san">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. 物品栏 (Inventory) -->
+    <div id="inventory-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2>/// 物品清单 ///</h2>
+            <button class="pixel-btn" onclick="hideOverlay('inventory-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+        </div>
+        <div class="overlay-content">
+            <div id="inventory-list" class="inventory-grid">
+                <!-- 物品将在这里动态生成 -->
+            </div>
+            <div id="empty-bag-msg" style="text-align: center; color: var(--dim); margin-top: 50px; display: none;">
+                [ 空无一物 ]
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. 地图 (Map) -->
+    <div id="map-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2>/// 城市导航 ///</h2>
+            <button class="pixel-btn" onclick="hideOverlay('map-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+        </div>
+        <div class="overlay-content">
+            <div style="margin-bottom: 15px; color: var(--dim); font-size: 0.9rem;">
+                当前位置: <span id="current-location-name" style="color: var(--accent-glitch)">404号事务所</span>
+                <br>
+                <span style="color: var(--accent-gold)">提示：白天可自由移动，夜晚移动可能遭遇危险。</span>
+            </div>
+            <div id="map-grid" class="map-grid">
+                <!-- 地点动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 7.5 手机终端 (美化版) -->
+    <div id="phone-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2>/// 智能终端 ///</h2>
+            <button class="pixel-btn" onclick="hideOverlay('phone-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+        </div>
+        <div class="overlay-content" style="position: relative; overflow: hidden;">
+            <!-- 顶部状态栏 -->
+            <div style="display: flex; justify-content: space-between; padding: 0 10px 10px 10px; border-bottom: 1px solid #333; color: var(--dim); font-size: 0.8rem;">
+                <span id="phone-carrier">NO SIGNAL</span>
+                <span><span id="phone-time">12:00</span> | 🔋 84%</span>
+            </div>
+            
+            <!-- APP 图标网格 -->
+            <div id="phone-home" class="app-grid">
+                <div class="app-icon" onclick="handlePhoneAction('sns')">
+                    <div class="app-symbol" style="border-color: #ff79c6; color: #ff79c6;">💬</div>
+                    <div class="app-name">树洞</div>
+                </div>
+                <div class="app-icon" onclick="handlePhoneAction('news')">
+                    <div class="app-symbol" style="border-color: #8be9fd; color: #8be9fd;">📰</div>
+                    <div class="app-name">早报</div>
+                </div>
+                <div class="app-icon" onclick="handlePhoneAction('takeout')">
+                    <div class="app-symbol" style="border-color: #f1fa8c; color: #f1fa8c;">🍔</div>
+                    <div class="app-name">饱了么</div>
+                </div>
+                <div class="app-icon" onclick="handlePhoneAction('msg')">
+                    <div class="app-symbol" style="border-color: #ff5555; color: #ff5555;">📩</div>
+                    <div class="app-name">短信</div>
+                </div>
+            </div>
+
+            <!-- APP 内容显示区 -->
+            <div id="phone-display-area">
+                <div class="app-header">
+                    <button class="back-btn" onclick="closePhoneApp()">←</button>
+                    <span class="app-title" id="current-app-title">应用名称</span>
+                </div>
+                <div id="phone-content" style="flex: 1; overflow-y: auto; padding-bottom: 20px;">
+                    <!-- 动态内容将渲染在这里 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. 命运骰子动画层 (新增) -->
+    <div id="dice-layer" class="overlay-layer" style="justify-content: center; align-items: center; background: rgba(0,0,0,0.98); z-index: 50000;">
+        <div style="text-align: center; width: 100%;">
+            <div id="dice-title" style="color: var(--dim); margin-bottom: 30px; letter-spacing: 4px; font-family: var(--font-pixel);">ATTRIBUTE CHECK...</div>
+            
+            <!-- 骰子本体 -->
+            <div id="dice-box" style="
+                font-size: 6rem; font-weight: bold; color: var(--fg); 
+                border: 6px solid var(--fg); width: 140px; height: 140px; 
+                line-height: 120px; margin: 0 auto; position: relative;
+                background: #000; box-shadow: 0 0 20px rgba(255,255,255,0.1);
+                transition: all 0.2s;
+            ">
+                <span id="dice-val">20</span>
+            </div>
+
+            <!-- 结果反馈 -->
+            <div id="dice-result" style="font-size: 3rem; margin-top: 30px; height: 50px; font-weight: bold; letter-spacing: 5px; text-shadow: 0 0 10px currentColor;"></div>
+            
+            <div id="dice-target" style="color: var(--dim); margin-top: 20px; font-size: 1.2rem;">
+                CHECK: <span id="check-attr" style="color: var(--accent-gold)">INT</span> | 
+                TARGET: <span id="target-val" style="color: #fff">10</span>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 8. 历史记录层 -->
+    <div id="log-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2>/// 调查记录 ///</h2>
+            <button class="pixel-btn" onclick="hideOverlay('log-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+        </div>
+        <div id="log-content" class="overlay-content"></div>
+    </div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const SVG_VOICE_RECEIVED = `<svg class="voice-icon-svg" viewBox="25 0 50 100" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-5, 0)"><path d="M 35 50 L 43.91 41.09 A 12.6 12.6 0 0 1 43.91 58.91 Z" fill="currentColor"/><g transform="translate(-2, 0)"><path d="M 55.35 32.89 A 26.6 26.6 0 0 1 55.35 67.11" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/><path d="M 66.09 23.92 A 40.6 40.6 0 0 1 66.09 76.08" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/></g></g></svg>`;
-        const SVG_VOICE_SENT = `<svg class="voice-icon-svg" viewBox="25 0 50 100" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(100, 0) scale(-1, 1)"><g transform="translate(-5, 0)"><path d="M 35 50 L 43.91 41.09 A 12.6 12.6 0 0 1 43.91 58.91 Z" fill="currentColor"/><g transform="translate(-2, 0)"><path d="M 55.35 32.89 A 26.6 26.6 0 0 1 55.35 67.11" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/><path d="M 66.09 23.92 A 40.6 40.6 0 0 1 66.09 76.08" fill="none" stroke="currentColor" stroke-width="6.4" stroke-linecap="butt"/></g></g></g></svg>`;
+/**
+ * 全局状态与配置
+ */
+let config = {
+    baseUrl: localStorage.getItem('mc_base_url') || 'https://api.openai.com/v1',
+    apiKey: localStorage.getItem('mc_api_key') || '',
+    model: localStorage.getItem('mc_model') || 'gpt-3.5-turbo'
+};
 
-        const WECHAT_EMOJIS = [
-            {"name":"[微笑]","url":"https://i.postimg.cc/wTZ1JhZX/image.png"},{"name":"[撇嘴]","url":"https://i.postimg.cc/3N9gYdxL/image.png"},{"name":"[色]","url":"https://i.postimg.cc/4y49LsQp/image.png"},{"name":"[发呆]","url":"https://i.postimg.cc/Nf137tPd/image.png"},{"name":"[得意]","url":"https://i.postimg.cc/Ss3BVxhv/image.png"},{"name":"[流泪]","url":"https://i.postimg.cc/Y9KNx5Px/image.png"},{"name":"[害羞]","url":"https://i.postimg.cc/7PzdwDDq/image.png"},{"name":"[闭嘴]","url":"https://i.postimg.cc/4nCWHKgX/image.png"},{"name":"[睡]","url":"https://i.postimg.cc/MGkjkyY6/image.png"},{"name":"[大哭]","url":"https://i.postimg.cc/yNQ4gTrB/image.png"},{"name":"[尴尬]","url":"https://i.postimg.cc/4d7MKR9b/image.png"},{"name":"[发怒]","url":"https://i.postimg.cc/jStGM1pt/image.png"},{"name":"[调皮]","url":"https://i.postimg.cc/zDRZvKwZ/image.png"},{"name":"[呲牙]","url":"https://i.postimg.cc/K85yFbP1/image.png"},{"name":"[惊讶]","url":"https://i.postimg.cc/tC5r44cG/image.png"},{"name":"[难过]","url":"https://i.postimg.cc/0j9pTpPM/image.png"},{"name":"[囧]","url":"https://i.postimg.cc/L88xYMdY/image.png"},{"name":"[抓狂]","url":"https://i.postimg.cc/V5QcsLZC/image.png"},{"name":"[吐]","url":"https://i.postimg.cc/XY5pgr6T/image.png"},{"name":"[偷笑]","url":"https://i.postimg.cc/PJFPSZxk/image.png"},{"name":"[愉快]","url":"https://i.postimg.cc/SQ5Stmdq/image.png"},{"name":"[白眼]","url":"https://i.postimg.cc/JhRdQBBn/image.png"},{"name":"[傲慢]","url":"https://i.postimg.cc/BnTVDCbk/image.png"},{"name":"[困]","url":"https://i.postimg.cc/ZKTc2h57/image.png"},{"name":"[惊恐]","url":"https://i.postimg.cc/9FV827JB/image.png"},{"name":"[流汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[憨笑]","url":"https://i.postimg.cc/28fJ5J8h/image.png"},{"name":"[悠闲]","url":"https://i.postimg.cc/wMS9tkM3/image.png"},{"name":"[咒骂]","url":"https://i.postimg.cc/fbwD0yz7/image.png"},{"name":"[疑问]","url":"https://i.postimg.cc/ZqcYf37D/image.png"},{"name":"[嘘]","url":"https://i.postimg.cc/pXwdyP5k/image.png"},{"name":"[晕]","url":"https://i.postimg.cc/mgWbBVK5/image.png"},{"name":"[衰]","url":"https://i.postimg.cc/4xHhF8V2/image.png"},{"name":"[骷髅]","url":"https://i.postimg.cc/qqrLpPX7/image.png"},{"name":"[敲打]","url":"https://i.postimg.cc/L6CzWY75/image.png"},{"name":"[再见]","url":"https://i.postimg.cc/t4d9TWjC/image.png"},{"name":"[擦汗]","url":"https://i.postimg.cc/kXKm1KDF/image.png"},{"name":"[抠鼻]","url":"https://i.postimg.cc/MTV526B4/image.png"},{"name":"[鼓掌]","url":"https://i.postimg.cc/3N2cBj9k/image.png"},{"name":"[坏笑]","url":"https://i.postimg.cc/mDHXL3vm/image.png"},{"name":"[左哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[右哼哼]","url":"https://i.postimg.cc/8cF1PY1q/image.png"},{"name":"[哈欠]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[鄙视]","url":"https://i.postimg.cc/6q4HQrFH/image.png"},{"name":"[委屈]","url":"https://i.postimg.cc/tTqJyDnj/image.png"},{"name":"[快哭了]","url":"https://i.postimg.cc/HW0z6Ld8/image.png"},{"name":"[阴险]","url":"https://i.postimg.cc/rmwV7m7y/image.png"},{"name":"[亲亲]","url":"https://i.postimg.cc/8z7hgkQH/image.png"},{"name":"[可怜]","url":"https://i.postimg.cc/QMBSmkdj/image.png"},{"name":"[菜刀]","url":"https://i.postimg.cc/pVgvJqVL/image.png"},{"name":"[啤酒]","url":"https://i.postimg.cc/mDYYpdfW/image.png"},{"name":"[咖啡]","url":"https://i.postimg.cc/3xfn2b7L/image.png"},{"name":"[猪头]","url":"https://i.postimg.cc/sxZrRZmz/image.png"},{"name":"[玫瑰]","url":"https://i.postimg.cc/mgkSZNM7/image.png"},{"name":"[凋谢]","url":"https://i.postimg.cc/L5PrWF46/image.png"},{"name":"[嘴唇]","url":"https://i.postimg.cc/zDLbftPz/image.png"},{"name":"[爱心]","url":"https://i.postimg.cc/52dr6r48/image.png"},{"name":"[心碎]","url":"https://i.postimg.cc/L6YXHJ5n/image.png"},{"name":"[蛋糕]","url":"https://i.postimg.cc/LXJdzZrP/image.png"},{"name":"[闪电]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[炸弹]","url":"https://i.postimg.cc/xdtYGQ8w/image.png"},{"name":"[便便]","url":"https://i.postimg.cc/9X4V9vhk/image.png"},{"name":"[月亮]","url":"https://i.postimg.cc/qM3kPWDK/image.png"},{"name":"[太阳]","url":"https://i.postimg.cc/W4Mqsh9M/image.png"},{"name":"[拥抱]","url":"https://i.postimg.cc/76tH44y3/image.png"},{"name":"[强]","url":"https://i.postimg.cc/c44RTMFP/image.png"},{"name":"[弱]","url":"https://i.postimg.cc/wvpJNhtf/image.png"},{"name":"[握手]","url":"https://i.postimg.cc/0QVQNm7J/image.png"},{"name":"[胜利]","url":"https://i.postimg.cc/3NLDzVtV/image.png"},{"name":"[抱拳]","url":"https://i.postimg.cc/wvvfC82Y/image.png"},{"name":"[勾引]","url":"https://i.postimg.cc/ZRGQpsPk/image.png"},{"name":"[拳头]","url":"https://i.postimg.cc/PqZYN6qv/image.png"},{"name":"[OK]","url":"https://i.postimg.cc/vH6j8ysQ/OK.png"},{"name":"[跳跳]","url":"https://i.postimg.cc/sXmBZbCx/image.png"},{"name":"[发抖]","url":"https://i.postimg.cc/jd0V72vW/image.png"},{"name":"[转圈]","url":"https://i.postimg.cc/Px7jcMmK/image.png"},{"name":"[嘿哈]","url":"https://i.postimg.cc/nLMS5f0b/image.png"},{"name":"[捂脸]","url":"https://i.postimg.cc/2yJSQDck/image.png"},{"name":"[奸笑]","url":"https://i.postimg.cc/3Njtp8Jp/image.png"},{"name":"[机智]","url":"https://i.postimg.cc/hvRCfzgc/image.png"},{"name":"[皱眉]","url":"https://i.postimg.cc/cHCWXz8r/image.png"},{"name":"[耶]","url":"https://i.postimg.cc/FKmsgGZL/image.png"},{"name":"[红包]","url":"https://i.postimg.cc/JhgYCY2y/image.png"},{"name":"[吃瓜]","url":"https://i.postimg.cc/Bn3GdbKW/image.png"},{"name":"[加油]","url":"https://i.postimg.cc/ry5n7JCm/image.png"},{"name":"[汗]","url":"https://i.postimg.cc/sD9LGcv8/image.png"},{"name":"[天啊]","url":"https://i.postimg.cc/mkrP3VTw/image.png"},{"name":"[Emm]","url":"https://i.postimg.cc/CM2XV19P/Emm.png"},{"name":"[社会社会]","url":"https://i.postimg.cc/HsxMbWxg/image.png"},{"name":"[旺柴]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[好的]","url":"https://i.postimg.cc/CxhQGq8K/image.png"},{"name":"[哇]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[打脸]","url":"https://i.postimg.cc/ZqKz5QHV/image.png"},{"name":"[裂开]","url":"https://i.postimg.cc/FKJg3rTR/image.png"},{"name":"[doge]","url":"https://i.postimg.cc/JhWtYR1t/image.png"},{"name":"[惊喜]","url":"https://i.postimg.cc/15fgfWCR/image.png"},{"name":"[让我看看]","url":"https://i.postimg.cc/1trFrfw9/image.png"},{"name":"[叹气]","url":"https://i.postimg.cc/W3TFzTKx/image.png"},{"name":"[苦涩]","url":"https://i.postimg.cc/8cbbcZtm/image.png"},{"name":"[翻白眼]","url":"https://i.postimg.cc/tgg8jxRc/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"},{"name":"[合十]","url":"https://i.postimg.cc/VkKHDk9W/image.png"},{"name":"[失望]","url":"https://i.postimg.cc/DyMX6VJb/image.png"},{"name":"[庆祝]","url":"https://i.postimg.cc/Qdvc8Ljr/image.png"},{"name":"[恐惧]","url":"https://i.postimg.cc/6QDcm28n/image.png"},{"name":"[无语]","url":"https://i.postimg.cc/Gt9pT2jg/image.png"},{"name":"[烟花]","url":"https://i.postimg.cc/bw1wt4QP/image.png"},{"name":"[爆竹]","url":"https://i.postimg.cc/V6VG1GZr/image.png"},{"name":"[生病]","url":"https://i.postimg.cc/XNxFZBnL/image.png"},{"name":"[發]","url":"https://i.postimg.cc/0ynhFfvm/image.png"},{"name":"[破涕为笑]","url":"https://i.postimg.cc/BZC5xwBx/image.png"},{"name":"[礼物]","url":"https://i.postimg.cc/rFQJLYd8/image.png"},{"name":"[福]","url":"https://i.postimg.cc/zfP6XGVG/image.png"},{"name":"[笑脸]","url":"https://i.postimg.cc/05HjRY8T/image.png"},{"name":"[脸红]","url":"https://i.postimg.cc/sgL4MQ9q/image.png"},{"name":"[666]","url":"https://i.postimg.cc/LsZhNndc/666.png"}
-        ];
-        const wechatEmojiMap = WECHAT_EMOJIS.reduce((acc, emoji) => {
-            acc[emoji.name] = emoji.url;
-            return acc;
-        }, {});
+// 时间阶段常量
+const TIME_PHASES = ["上午", "下午", "黄昏", "深夜"];
+const TIME_ICONS = ["☀️", "☀️", "🌇", "🌙"];
 
-        const DEFAULT_AVATAR = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
-        const DEFAULT_IMAGE_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2NjYyIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1tGluZWpvaW49InJvdW5kIj48cmVjdIHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiPjwvY2lyY2xlPjxwb2x5bGluZSBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEiPjwvcG9seWxpbmU+PC9zdmc+';
+let gameState = {
+    day: 1,
+    timePhase: 0, // 0-3
+    money: 2000,
+    reputation: 0, // 声望值
+    currentLocation: "404号事务所",
+    player: { name: "", job: "", extra: "", desc: "" },
+    stats: { 
+        hp: 100, maxHp: 100, 
+        san: 60, maxSan: 60,
+        phy: 10, dex: 10, int: 10, cha: 10, mys: 10 
+    },
+    // === 新增：核心谜团系统 ===
+    mystery: {
+        active: false,      // 是否有正在进行的谜团
+        title: "",          // 谜面 (玩家可见，如"午夜敲门声")
+        truth: "",          // 谜底 (玩家不可见，AI可见，用于引导剧情)
+        deadlineDay: 0,     // 截止日期 (Day X 晚上结算)
+        status: "pending"   // pending, solved, failed
+    },
+    inventory: [],
+    quests: [
+        { id: "main", text: "入住404号事务所，熟悉环境。", active: true } 
+    ],
+    clues: [], 
+    unlockedLocations: [
+        { name: "404号事务所", id: "home", locked: false, type: "safe" },
+        { name: "便利店", id: "shop", locked: false, type: "shop" },
+        { name: "心理诊所", id: "clinic", locked: false, type: "heal" }
+    ],
+    history: [], 
+    log: [],
+    flags: {
+        introDone: false,
+        hasCheckedMail: false
+    }
+};
+
+// === 新增：场景背景图配置 ===
+const SCENE_IMAGES = {
+    // 格式： "关键词": "图片链接"
+    "事务所": "https://i.postimg.cc/fRb8s2PP/shi-wu-suo1.png",
+    "医院": "https://media.istockphoto.com/id/1352178903/vector/hospital-building-pixel-art-vector-illustration.jpg?s=612x612&w=0&k=20&c=gK4sF4w0XyM-J9vW_D2yv9xK_E8hZ_u_X_y_Z_z_0=", // 示例占位图，你可以换成你的
+    "便利店": "", // 暂时留空，显示默认黑色
+    "街道": "" 
+};
+
+// 切换背景图的函数
+function updateSceneBackground(locationName) {
+    const visualArea = document.getElementById('visual-area');
+    let bgUrl = ""; // 默认为空（黑色背景）
+
+    // 遍历配置，只要地点名字包含关键词（比如"第一人民医院"包含"医院"），就应用图片
+    for (const [key, url] of Object.entries(SCENE_IMAGES)) {
+        if (locationName.includes(key) && url) {
+            bgUrl = url;
+            break; // 找到匹配的就停止
+        }
+    }
+
+    if (bgUrl) {
+        visualArea.style.backgroundImage = `url('${bgUrl}')`;
+    } else {
+        visualArea.style.backgroundImage = 'none'; // 没有匹配图时恢复默认
+    }
+}
+
+let avgState = {
+    textQueue: [],
+    currentFullText: "",
+    isTyping: false,
+    typingTimer: null,
+    charIndex: 0,
+    pendingChoices: [],
+    isWaitingForAI: false,
+    isReadyToPlay: false,
+    tempData: null
+};
+
+// --- 0. 开场动画逻辑 ---
+const slides = [
+    { text: "欢迎来到 <span class='highlight-neon' style='font-size: 2.2rem'>雾川市</span>。", style: "text-align: center;" },
+    { text: "这里的房租很便宜，雨水很充沛，霓虹灯很亮。\n亮到足以掩盖巷子里那些……\n<br><span class='highlight-scary' style='font-size: 2rem'>蠕动的阴影</span>。", style: "text-align: left;" },
+    { text: "你接手了 <span style='border-bottom: 2px solid white'>404号事务所</span>。\n这既是你的新家，也是你窥探“里世界”的窗口。", style: "text-align: left;" },
+    { text: "请记住三条生存法则：\n\n1. 白天是安全的，尽情享受阳光。\n2. 夜晚属于“它们”，不要轻易出门。\n3. 保持理智，或者……<span style='font-style:italic'>享受疯狂</span>。", style: "text-align: left;" },
+    { text: "准备好开始你的“正常”生活了吗？", style: "text-align: center; font-size: 1.5rem;" }
+];
+
+let currentSlide = 0;
+const introLayer = document.getElementById('intro-layer');
+const introContent = document.getElementById('intro-content');
+
+showSlide(0);
+
+function showSlide(index) {
+    introContent.classList.remove('show');
+    setTimeout(() => {
+        if (index >= slides.length) { endIntro(); return; }
+        introContent.innerHTML = slides[index].text;
+        introContent.style.cssText = slides[index].style;
+        introContent.classList.add('show');
+    }, 300);
+}
+
+function nextSlide() {
+    currentSlide++;
+    if (currentSlide < slides.length) showSlide(currentSlide);
+    else endIntro();
+}
+
+function endIntro() {
+    introLayer.style.opacity = '0';
+    introLayer.style.pointerEvents = 'none';
+    setTimeout(() => {
+        introLayer.style.display = 'none';
+        document.getElementById('title-screen').classList.add('active');
+    }, 1000);
+}
+
+// --- 1. 初始化与设置 ---
+document.getElementById('api-url').value = config.baseUrl;
+document.getElementById('api-key').value = config.apiKey;
+document.getElementById('api-model').value = config.model;
+checkApiStatus();
+
+function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+
+function saveSettings() {
+    config.baseUrl = document.getElementById('api-url').value.replace(/\/$/, "");
+    config.apiKey = document.getElementById('api-key').value;
+    config.model = document.getElementById('api-model').value;
+    localStorage.setItem('mc_base_url', config.baseUrl);
+    localStorage.setItem('mc_api_key', config.apiKey);
+    localStorage.setItem('mc_model', config.model);
+    checkApiStatus();
+    closeSettings();
+}
+
+function checkApiStatus() {
+    const btn = document.getElementById('btn-enter-town');
+    const indicator = document.getElementById('api-status-indicator');
+    if (config.apiKey && config.apiKey.length > 5) {
+        btn.disabled = false;
+        indicator.innerText = "[ √ 神经连接就绪 ]";
+        indicator.style.color = "var(--accent-glitch)";
+    } else {
+        btn.disabled = true;
+        indicator.innerText = "[ ⚠️ 神经连接未就绪 ]";
+        indicator.style.color = "var(--dim)";
+    }
+}
+
+// === 新增：存档系统 ===
+function checkSaveFile() {
+    const save = localStorage.getItem('mc_save_data');
+    const btn = document.getElementById('btn-continue');
+    if (save) {
+        btn.style.display = 'block';
+        btn.innerText = `📂 读取存档 (DAY ${JSON.parse(save).day})`;
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+function saveGame() {
+    try {
+        localStorage.setItem('mc_save_data', JSON.stringify(gameState));
+        alert("✅ 进度已保存至本地神经回路。");
+        checkSaveFile(); // 刷新标题画面按钮状态
+    } catch (e) {
+        alert("❌ 保存失败: " + e.message);
+    }
+}
+
+function loadGame() {
+    const save = localStorage.getItem('mc_save_data');
+    if (!save) return alert("未找到存档记录。");
+    
+    if (confirm("确定要读取存档吗？当前未保存的进度将丢失。")) {
+        try {
+            const loadedState = JSON.parse(save);
+            // 覆盖当前状态
+            gameState = loadedState;
+            
+            // 恢复界面
+            document.getElementById('title-screen').classList.remove('active');
+            document.getElementById('intro-layer').style.display = 'none';
+            document.getElementById('game-screen').classList.add('active');
+            
+            // 刷新所有UI
+            updateStatsUI();
+            addToLog("[系统] 存档读取成功。");
+            
+            // 尝试恢复上一条文本（如果有）
+            if (gameState.history.length > 0) {
+                const lastMsg = gameState.history[gameState.history.length - 1];
+                if (lastMsg.role === 'assistant') {
+                    // 简单的恢复显示，不触发打字机
+                    document.getElementById('main-text').innerText = "（...记忆重载完成...）";
+                    setTimeout(() => {
+                         // 这里我们不重新解析JSON，只是给个提示，让玩家继续操作
+                         handleScene('continue', '读取存档后继续');
+                    }, 1000);
+                }
+            } else {
+                handleScene('intro_day1'); // 如果是坏档，重置到第一天
+            }
+            
+        } catch (e) {
+            alert("❌ 存档损坏: " + e.message);
+        }
+    }
+}
+
+function deleteSave() {
+    if (confirm("⚠️ 警告：确定要彻底删除存档吗？此操作不可逆！")) {
+        localStorage.removeItem('mc_save_data');
+        checkSaveFile();
+        alert("存档已粉碎。");
+    }
+}
+
+// 初始化时检查存档
+window.addEventListener('load', checkSaveFile);
+
+
+async function testConnection() {
+    const msgEl = document.getElementById('test-msg');
+    msgEl.innerText = "正在呼叫灵界信号..."; 
+    msgEl.className = "status-msg";
+    
+    try {
+        const response = await fetch(`${config.baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                model: config.model, 
+                messages: [{ role: "user", content: "Say OK" }], 
+                max_tokens: 5 
+            })
+        });
         
-        const PRESETS_STORAGE_KEY = 'wechatStoryPresets_v1';
+        if (response.ok) {
+            msgEl.innerText = "连接成功！灵界信号稳定。"; 
+            msgEl.className = "status-msg success";
+        } else { 
+            // 尝试读取错误信息
+            const errData = await response.json().catch(() => ({}));
+            const errMsg = errData.error?.message || response.statusText;
+            throw new Error(`HTTP ${response.status}: ${errMsg}`); 
+        }
+    } catch (e) {
+        console.error("API Error:", e);
+        let showMsg = "连接失败: " + e.message;
+        if (e.message.includes("Failed to fetch")) {
+            showMsg = "连接被阻断 (CORS或网络问题)。请检查代理或API地址。";
+        }
+        msgEl.innerText = showMsg; 
+        msgEl.className = "status-msg error";
+    }
+}
 
-        let state = { chatTitle: '', selfUserId: null, users: [], messages: [] };
-        let activeTextarea = null;
+// 定义全局控制器（如果刚才没加，这里加上；如果加了，覆盖也没事）
+let modelAbortController = null; 
+
+async function fetchModels() {
+    // === 修复核心：实时获取输入框里的 URL 和 Key，而不是读取旧配置 ===
+    const currentUrl = document.getElementById('api-url').value.replace(/\/$/, "");
+    const currentKey = document.getElementById('api-key').value;
+
+    if(!currentKey) return alert("请输入Key");
+
+    const btn = document.activeElement; 
+    const isBtn = btn && btn.tagName === 'BUTTON';
+    const inputEl = document.getElementById('api-model'); // 获取当前的输入框
+
+    // 1. 取消逻辑
+    if (modelAbortController) {
+        modelAbortController.abort();
+        modelAbortController = null;
+        if(isBtn) {
+            btn.innerText = "列表";
+            btn.disabled = false;
+        }
+        return;
+    }
+
+    // 2. 开始拉取
+    modelAbortController = new AbortController();
+    const signal = modelAbortController.signal;
+
+    if(isBtn) btn.innerText = "取消 (15s)";
+    
+    // 超时计时器
+    const timeoutId = setTimeout(() => {
+        if (modelAbortController) {
+            modelAbortController.abort();
+            alert("⚠️ 连接超时，请检查网络。");
+        }
+    }, 15000);
+
+    try {
+        // === 修复：使用 currentUrl 发送请求 ===
+        const res = await fetch(`${currentUrl}/models`, {
+            method: 'GET', 
+            headers: { 'Authorization': `Bearer ${currentKey}` },
+            signal: signal
+        });
         
-        const dom = {
-            importPresetsBtn: document.getElementById('import-presets-btn'),
-            importPresetsInput: document.getElementById('import-presets-input'),
-            exportPresetsBtn: document.getElementById('export-presets-btn'),
+        clearTimeout(timeoutId);
 
-            presetSelector: document.getElementById('preset-selector'),
-            savePresetBtn: document.getElementById('save-preset-btn'),
-            deletePresetBtn: document.getElementById('delete-preset-btn'),
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-            chatTitleEditor: document.getElementById('chat-title-editor'),
-            userProfilesEditor: document.getElementById('user-profiles-editor'),
-            messageListEditor: document.getElementById('message-list-editor'),
-            addUserBtn: document.getElementById('add-user-btn'),
-            addSelfMessageBtn: document.getElementById('add-self-message-btn'),
-            addOtherMessageBtn: document.getElementById('add-other-message-btn'),
-            addTimestampBtn: document.getElementById('add-timestamp-btn'),
-            fillExampleBtn: document.getElementById('fill-example-btn'),
-            resetBtn: document.getElementById('reset-btn'),
-            clearMessagesBtn: document.getElementById('clear-messages-btn'),
-            clearUsersBtn: document.getElementById('clear-users-btn'),
-            exportLongBtn: document.getElementById('export-long-btn'),
-            exportCurrentBtn: document.getElementById('export-current-btn'),
-            chatTitlePreview: document.getElementById('chat-title-preview'),
-            chatMessagesContainer: document.getElementById('chat-messages-container'),
+        const data = await res.json();
+        // 获取模型数组
+        const modelList = (data.data || data).map(m => m.id || m);
+
+        if(modelList.length === 0) throw new Error("未找到模型");
+
+        // === ✨ 核心魔法：原地变身下拉菜单 ===
+        
+        // 1. 创建一个新的下拉框
+        const select = document.createElement('select');
+        select.id = 'api-model'; // 保持ID不变，这样保存功能依然有效
+        select.className = 'pixel-input'; // 保持样式不变
+        
+        // 2. 填充选项
+        modelList.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.innerText = m;
+            // 如果和当前填的一样，自动选中
+            if(m === config.model) opt.selected = true;
+            select.appendChild(opt);
+        });
+
+        // 3. 替换掉原来的输入框
+        inputEl.parentNode.replaceChild(select, inputEl);
+
+        // 4. 提示成功
+        if(isBtn) btn.innerText = "√ 就绪";
+        setTimeout(() => { if(isBtn) btn.innerText = "列表"; }, 2000);
+
+    } catch(e) { 
+        if (e.name !== 'AbortError') {
+            console.error(e);
+            alert("⚠️ 拉取失败: " + e.message); 
+        }
+    } finally {
+        modelAbortController = null;
+        clearTimeout(timeoutId);
+        if(isBtn && btn.innerText.includes("取消")) {
+            btn.innerText = "列表";
+            btn.disabled = false;
+        }
+    }
+}
+
+// === 新增：随机人设库 ===
+const R_NAMES = ["林恩", "K", "莫里斯", "陈", "艾达", "阿黑", "鸦", "白", "42号", "瑞恩"];
+const R_JOBS = ["私家侦探", "黑客", "医生", "古董商", "落魄记者", "除灵师", "调酒师", "赏金猎人"];
+const R_EXTRAS = ["总是听到幻听", "欠了高利贷", "拥有阴阳眼", "失忆了", "右臂残缺", "重度失眠", "能看见死亡倒计时"];
+
+function randomizeInputs() {
+    document.getElementById('char-name').value = R_NAMES[Math.floor(Math.random() * R_NAMES.length)];
+    document.getElementById('char-job').value = R_JOBS[Math.floor(Math.random() * R_JOBS.length)];
+    document.getElementById('char-extra').value = R_EXTRAS[Math.floor(Math.random() * R_EXTRAS.length)];
+}
+
+// === 新增：自由行动处理 ===
+function submitFreeAction() {
+    const inputEl = document.getElementById('free-input');
+    const actionText = inputEl.value.trim();
+    
+    if (!actionText) return;
+    if (avgState.isWaitingForAI) return alert("正在连接灵界，请稍候...");
+    
+    // 清空输入框
+    inputEl.value = "";
+    
+    // 隐藏选项层，防止冲突
+    document.getElementById('choices-layer').classList.remove('active');
+    
+    // 修改逻辑：不再直接生成剧情，而是先请求AI进行“裁判判定”
+    handleScene('judge_action', actionText);
+}
+
+
+// --- 2. 角色创建与档案生成 ---
+
+function goToCharCreation() {
+    document.getElementById('title-screen').classList.remove('active');
+    document.getElementById('char-screen').classList.add('active');
+}
+
+async function generatePersona() {
+    const name = document.getElementById('char-name').value.trim();
+    const job = document.getElementById('char-job').value.trim();
+    const extra = document.getElementById('char-extra').value.trim();
+
+    if (!name || !job) return alert("请至少填写姓名和前职。");
+
+    gameState.player = { name, job, extra, desc: "" };
+
+    document.getElementById('char-screen').classList.remove('active');
+    document.getElementById('persona-screen').classList.add('active');
+    document.getElementById('persona-loading').style.display = 'block';
+    document.getElementById('persona-result').style.display = 'none';
+
+    const prompt = `
+    玩家正在创建角色。
+    姓名：${name}
+    职业：${job}
+    额外特质/秘密：${extra || "无"}
+    
+    请生成一个详细、有深度的轻度恐怖日常风格人物侧写。
+    并根据职业和特质，生成以下属性数值（范围1-20，普通人平均10）：
+    - PHY (体魄): 生命、战斗
+    - DEX (灵巧): 敏捷、潜行
+    - INT (学识): 知识、技术
+    - CHA (魅力): 社交、欺诈
+    - MYS (灵视): 核心属性，感知超自然的能力
+    
+    请严格返回JSON格式：
+    {
+        "description": "一段第二人称的描述（约120-150字），详细说明你的过去、现在的状态以及为何来到这里，氛围要压抑且充满细节。",
+        "phy": 10,
+        "dex": 10,
+        "int": 10,
+        "cha": 10,
+        "mys": 10
+    }
+    `;
+
+    const result = await callAI(prompt, true);
+
+    if (result) {
+        document.getElementById('persona-loading').style.display = 'none';
+        document.getElementById('persona-result').style.display = 'block';
+        
+        document.getElementById('dossier-name').innerText = `NAME: ${name}`;
+        document.getElementById('dossier-job').innerText = `JOB: ${job}`;
+        document.getElementById('dossier-desc').innerText = result.description;
+        
+        gameState.player.desc = result.description;
+
+        document.getElementById('p-phy').innerText = result.phy;
+        document.getElementById('p-dex').innerText = result.dex;
+        document.getElementById('p-int').innerText = result.int;
+        document.getElementById('p-cha').innerText = result.cha;
+        document.getElementById('p-mys').innerText = result.mys;
+
+        const hp = 50 + (result.phy * 5);
+        const san = 20 + (result.mys * 5);
+
+        document.getElementById('p-hp').innerText = hp;
+        document.getElementById('p-san').innerText = san;
+
+        gameState.stats = {
+            hp: hp, maxHp: hp,
+            san: san, maxSan: san,
+            phy: result.phy, dex: result.dex, int: result.int, cha: result.cha, mys: result.mys
         };
-        const generateId = () => `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-        function loadPresets() {
-            const presetsJson = localStorage.getItem(PRESETS_STORAGE_KEY);
-            try {
-                return presetsJson ? JSON.parse(presetsJson) : [];
-            } catch (e) {
-                console.error("解析预设失败:", e);
-                return [];
-            }
-        }
-
-        function savePresets(presets) {
-            localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(presets));
-        }
-
-        function populatePresetSelector() {
-            const presets = loadPresets();
-            dom.presetSelector.innerHTML = '<option value="">-- 选择一个预设 --</option>';
-            presets.forEach(preset => {
-                const option = document.createElement('option');
-                option.value = preset.name;
-                option.textContent = preset.name;
-                dom.presetSelector.appendChild(option);
-            });
-        }
-
-        function parseEmojis(text) {
-            if (!text || typeof text !== 'string') return '';
-            return text.replace(/\[([^\]]+)\]/g, (match, name) => {
-                const emojiName = `[${name}]`;
-                const url = wechatEmojiMap[emojiName];
-                if (url) {
-                    return `<img src="${url}" alt="${name}" class="wechat-emoji" crossorigin="anonymous">`;
-                }
-                return match;
-            });
-        }
-
-        function renderUsersEditor() {
-            dom.userProfilesEditor.innerHTML = '';
-            if (state.users.length === 0) {
-                dom.userProfilesEditor.innerHTML = '<p style="color:#888; text-align:center;">请先添加用户</p>';
-                return;
-            }
-            state.users.forEach((user, index) => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'user-profile';
-                userDiv.dataset.userId = user.id;
-                userDiv.innerHTML = `<div class="user-avatar-editor"><img src="${user.avatar}" alt="avatar"><label class="upload-btn">上传头像<input type="file" accept="image/*" class="avatar-file-input"></label></div><div class="user-details"><div class="form-group"><label>昵称 (用户 ${index + 1})</label><input type="text" class="nickname-input" value="${user.nickname}"></div><div class="user-actions"><div class="self-selector"><input type="radio" name="self-user-selector" class="self-user-radio" id="self-user-${user.id}" value="${user.id}" ${state.selfUserId === user.id ? 'checked' : ''}><label for="self-user-${user.id}">设为自己</label></div><button class="btn btn-danger btn-sm remove-user-btn">删除</button></div></div>`;
-                dom.userProfilesEditor.appendChild(userDiv);
-            });
-        }
-
-        function renderMessagesEditor() {
-            dom.messageListEditor.innerHTML = '';
-            state.messages.forEach(item => {
-                const editorItemDiv = document.createElement('div');
-                editorItemDiv.className = `message-item-editor ${item.isCollapsed ? 'collapsed' : ''}`;
-                editorItemDiv.dataset.itemId = item.id;
-
-                let headerHtml = '';
-                let bodyHtml = '';
-                let avatar = DEFAULT_AVATAR;
-                
-                const dragHandleHtml = `<span class="drag-handle" title="拖拽排序">⠿</span>`;
-
-                if (item.type === 'message') {
-                    const user = state.users.find(u => u.id === item.userId);
-                    const nickname = user ? user.nickname : '未知用户';
-                    if(user) avatar = user.avatar;
-                    const userOptions = state.users.map(u => `<option value="${u.id}" ${u.id === item.userId ? 'selected' : ''}>${u.nickname}</option>`).join('');
-                    
-                    let summary = '';
-                    let contentEditorHtml = '';
-
-                    if (item.contentType === 'image') {
-                        summary = `<span class="summary-type">[图片/表情]</span>`;
-                        contentEditorHtml = `<div class="message-editor-image-controls"><img src="${item.content || DEFAULT_IMAGE_PLACEHOLDER}" alt="Image Preview"><label class="btn btn-secondary btn-sm">上传图片/表情<input type="file" accept="image/*" class="message-image-file-input" style="display:none;"></label></div>`;
-                    } else if (item.contentType === 'voice') {
-                        const duration = Math.min(60, Math.ceil((item.content || '').length / 3));
-                        summary = `<span class="summary-type">[语音]</span> ${duration}"`;
-                        contentEditorHtml = `
-                            <div class="form-group">
-                                <label>语音转文字内容 (根据字数自动计算时长)</label>
-                                <textarea class="content-textarea">${item.content || ''}</textarea>
-                            </div>
-                            <div class="form-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" class="show-transcription-checkbox" ${item.showTranscription ? 'checked' : ''}>
-                                    显示语音转文字
-                                </label>
-                            </div>`;
-                    } else { // 默认是文本
-                        summary = `<span class="summary-type">[文本]</span> ${item.content.length > 20 ? item.content.substring(0, 20) + '...' : item.content}`;
-                        contentEditorHtml = `
-                            <div class="form-group">
-                                <div class="form-group-header">
-                                    <label>消息内容</label>
-                                    <span class="emoji-btn" title="插入表情">😀</span>
-                                </div>
-                                <textarea class="content-textarea">${item.content}</textarea>
-                                <div class="emoji-picker" id="picker-${item.id}"></div>
-                            </div>`;
-                    }
-                    headerHtml = `${dragHandleHtml}<img src="${avatar}" class="message-editor-avatar"><span class="message-editor-summary">${nickname}: ${summary}</span>`;
-                    bodyHtml = `<div class="form-group"><label>发送方</label><select class="sender-select">${userOptions}</select></div><div class="form-group"><label>消息类型</label><select class="message-content-type-select"><option value="text" ${item.contentType === 'text' ? 'selected' : ''}>文本</option><option value="image" ${item.contentType === 'image' ? 'selected' : ''}>图片/表情</option><option value="voice" ${item.contentType === 'voice' ? 'selected' : ''}>语音</option></select></div>${contentEditorHtml}`;
-                } else { // 时间戳
-                    avatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5OTkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCI+PC9jaXJjbGU+PHBvbHlsaW5lIHBvaW50cz0iMTIgNiAxMiAxMiAxNiAxNCI+PC9wb2x5bGluZT48L3N2Zz4=';
-                    headerHtml = `${dragHandleHtml}<img src="${avatar}" class="message-editor-avatar"><span class="message-editor-summary"><span class="summary-type">[时间戳]</span> ${item.content}</span>`;
-                    bodyHtml = `<div class="form-group"><label>时间戳</label><input type="text" class="timestamp-input" value="${item.content}"></div>`;
-                }
-
-                const copyIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-                const controlsHtml = `
-                    <div class="message-editor-controls">
-                        <button class="copy-btn" title="复制此条">${copyIconSvg}</button>
-                        <button class="delete-btn" title="删除此条">×</button>
-                    </div>`;
-                editorItemDiv.innerHTML = `<div class="message-editor-header">${headerHtml}${controlsHtml}</div><div class="message-editor-body">${bodyHtml}</div>`;
-                
-                dom.messageListEditor.appendChild(editorItemDiv);
-
-                if (item.type === 'message' && item.contentType === 'text') {
-                    const picker = editorItemDiv.querySelector(`#picker-${item.id}`);
-                    if (picker && !picker.innerHTML) {
-                        WECHAT_EMOJIS.forEach(emoji => {
-                            const img = document.createElement('img');
-                            img.src = emoji.url;
-                            img.alt = emoji.name;
-                            img.title = emoji.name;
-                            img.dataset.code = emoji.name;
-                            picker.appendChild(img);
-                        });
-                    }
-                }
-            });
-        }
         
-        function renderPreview(itemIdToFocus = null) {
-            dom.chatTitlePreview.textContent = state.chatTitle || '聊天标题';
-            dom.chatMessagesContainer.innerHTML = '';
-            const messagesWrapper = document.createElement('div');
-            messagesWrapper.id = 'messages-content-wrapper';
-            state.messages.forEach(item => {
-                const previewItemDiv = document.createElement('div');
-                
-                previewItemDiv.dataset.itemId = item.id;
-
-                if(item.type === 'message') {
-                    const user = state.users.find(u => u.id === item.userId);
-                    if (!user) return;
-                    const isSentByMe = user.id === state.selfUserId;
-                    const showNickname = !isSentByMe && state.users.length > 2;
-                    previewItemDiv.className = `message-item ${isSentByMe ? 'sent' : 'received'}`;
-                    
-                    let bubbleHtml = '';
-                    if (item.contentType === 'image') {
-                        bubbleHtml = `<div class="bubble bubble-image"><img src="${item.content || DEFAULT_IMAGE_PLACEHOLDER}" class="message-image-preview" alt="图片消息" crossorigin="anonymous"></div>`;
-                    } else if (item.contentType === 'voice') {
-                        const duration = Math.min(60, Math.ceil((item.content || '').length / 3));
-                        const minWidth = 70;
-                        const maxWidth = 240;
-                        let bubbleWidth = minWidth;
-                        if (duration > 1) {
-                            bubbleWidth = minWidth + ((maxWidth - minWidth) * (duration - 1) / 59);
-                        }
-                        bubbleWidth = Math.round(bubbleWidth);
-
-                        const voiceIcon = isSentByMe ? SVG_VOICE_SENT : SVG_VOICE_RECEIVED;
-                        
-                        const voiceBubble = `<div class="bubble bubble-voice" style="width: ${bubbleWidth}px;">${voiceIcon}<span class="duration">${duration}"</span></div>`;
-                        
-                        const transcriptionBubble = (item.showTranscription && item.content) 
-                            ? `<div class="transcription-wrapper"><div class="bubble bubble-transcription">${parseEmojis(item.content.replace(/\n/g, '<br>'))}</div></div>` 
-                            : '';
-                        
-                        bubbleHtml = voiceBubble + transcriptionBubble;
-
-                    } else { // 文本消息
-                        const contentWithEmojis = parseEmojis(item.content.replace(/\n/g, '<br>'));
-                        bubbleHtml = `<div class="bubble"><div>${contentWithEmojis}</div></div>`;
-
-                    }
-
-                    previewItemDiv.innerHTML = `<img src="${user.avatar}" alt="${user.nickname}" class="avatar"><div class="message-content">${showNickname ? `<div class="nickname">${user.nickname}</div>` : ''}${bubbleHtml}</div>`;
-
-                } else { // 时间戳
-                     previewItemDiv.className = 'timestamp';
-                     previewItemDiv.textContent = item.content;
-                }
-                messagesWrapper.appendChild(previewItemDiv);
-            });
-            dom.chatMessagesContainer.appendChild(messagesWrapper);
-
-            if (itemIdToFocus && window.innerWidth > 900) {
-                const targetElement = messagesWrapper.querySelector(`[data-item-id="${itemIdToFocus}"]`);
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else {
-                    dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
-                }
-            } else {
-                dom.chatMessagesContainer.scrollTop = dom.chatMessagesContainer.scrollHeight;
-            }
-        }
-
-        dom.exportPresetsBtn.addEventListener('click', () => {
-            const presets = loadPresets();
-            if (presets.length === 0) {
-                alert("你还没有保存任何预设，没什么可导出的。");
-                return;
-            }
-
-            const dataStr = JSON.stringify(presets, null, 2);
-            const dataBlob = new Blob([dataStr], {type: "application/json"});
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.download = 'wechat-story-presets.json';
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            alert(`所有预设已导出为 wechat-story-presets.json 文件！`);
+        gameState.inventory.push({
+            id: "dice", name: "命运骰子", type: "key", count: 1,
+            desc: "一颗磨损的六面骰子，似乎总能投出你想要的点数。",
+            desc_insane: "它在看着你。上面的点数变成了眼睛。",
+            effect: "none"
         });
 
-        dom.importPresetsInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    } else {
+        alert("档案生成失败，请检查网络设置。");
+        document.getElementById('persona-screen').classList.remove('active');
+        document.getElementById('char-screen').classList.add('active');
+    }
+}
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const importedPresets = JSON.parse(event.target.result);
-                    
-                    if (!Array.isArray(importedPresets) || (importedPresets.length > 0 && (!importedPresets[0].name || !importedPresets[0].data))) {
-                        throw new Error("文件格式不正确。");
-                    }
+function realStartGame() {
+    document.getElementById('persona-screen').classList.remove('active');
+    document.getElementById('game-screen').classList.add('active');
+    updateStatsUI();
+    // 强制进入 Day 1 教学流程
+    handleScene("intro_day1");
+}
 
-                    let localPresets = loadPresets();
-                    let addedCount = 0, updatedCount = 0, skippedCount = 0;
+// --- 3. 游戏主循环 (核心交互逻辑) ---
 
-                    importedPresets.forEach(importedPreset => {
-                        const existingIndex = localPresets.findIndex(p => p.name === importedPreset.name);
-                        if (existingIndex > -1) {
-                            if (confirm(`已存在名为 "${importedPreset.name}" 的预设，要用导入的文件覆盖它吗？`)) {
-                                localPresets[existingIndex] = importedPreset;
-                                updatedCount++;
-                            } else {
-                                skippedCount++;
-                            }
-                        } else {
-                            localPresets.push(importedPreset);
-                            addedCount++;
-                        }
-                    });
+function updateStatsUI() {
+    document.getElementById('val-hp').innerText = gameState.stats.hp;
+    document.getElementById('val-san').innerText = gameState.stats.san;
+    document.getElementById('val-money').innerText = gameState.money;
+    
+    // 更新时间显示
+    document.getElementById('day-num').innerText = `DAY ${gameState.day}`;
+    document.getElementById('time-icon').innerText = TIME_ICONS[gameState.timePhase];
+    document.getElementById('time-text').innerText = TIME_PHASES[gameState.timePhase];
+    
+    // 事务所HUD控制
+    const officeHud = document.getElementById('office-hud');
+    if (gameState.currentLocation === "404号事务所") {
+        officeHud.classList.add('active');
+    } else {
+        officeHud.classList.remove('active');
+    }
 
-                    savePresets(localPresets);
-                    populatePresetSelector();
-                    
-                    alert(`导入完成！\n\n新增: ${addedCount} 个\n更新: ${updatedCount} 个\n跳过: ${skippedCount} 个`);
+    // 更新状态面板
+    document.getElementById('s-bio-text').innerText = gameState.player.desc || "暂无数据...";
+    // 新增：更新声望
+    document.getElementById('s-rep').innerText = gameState.reputation;
+    
+    document.getElementById('s-phy').innerText = gameState.stats.phy;
+    document.getElementById('s-dex').innerText = gameState.stats.dex;
+    document.getElementById('s-int').innerText = gameState.stats.int;
+    document.getElementById('s-cha').innerText = gameState.stats.cha;
+    document.getElementById('s-mys').innerText = gameState.stats.mys;
+    document.getElementById('s-hp').innerText = `${gameState.stats.hp} / ${gameState.stats.maxHp}`;
+    document.getElementById('s-san').innerText = `${gameState.stats.san} / ${gameState.stats.maxSan}`;
 
-                } catch (error) {
-                    alert(`导入失败！请确保你选择的是正确的 .json 预设文件。\n错误信息: ${error.message}`);
-                } finally {
-                    e.target.value = null;
-                }
-            };
-            reader.readAsText(file);
-        });
+    if (gameState.stats.san < 30) document.body.classList.add('glitch-text');
+    else document.body.classList.remove('glitch-text');
+}
 
-        dom.savePresetBtn.addEventListener('click', () => {
-            const presetName = prompt("为当前的用户和标题配置起个名字吧：", state.chatTitle || "我的预设");
-            if (!presetName) {
-                return;
-            }
+// 处理 AI 返回的数据
+function processSceneData(data) {
+    // === 优先处理地点变更 ===
+    if (data.move_to) {
+        gameState.currentLocation = data.move_to;
+    }
 
-            const presets = loadPresets();
-            const existingPresetIndex = presets.findIndex(p => p.name === presetName);
-
-            if (existingPresetIndex > -1) {
-                if (!confirm(`已存在名为 "${presetName}" 的预设，要覆盖它吗？`)) {
-                    return;
-                }
-            }
-            
-            const presetData = {
-                chatTitle: state.chatTitle,
-                users: JSON.parse(JSON.stringify(state.users)),
-                selfUserId: state.selfUserId
-            };
-
-            const newPreset = { name: presetName, data: presetData };
-
-            if (existingPresetIndex > -1) {
-                presets[existingPresetIndex] = newPreset;
-            } else {
-                presets.push(newPreset);
-            }
-
-            savePresets(presets);
-            populatePresetSelector();
-            dom.presetSelector.value = presetName;
-            alert(`预设 "${presetName}" 已保存！`);
-        });
-
-        dom.deletePresetBtn.addEventListener('click', () => {
-            const selectedName = dom.presetSelector.value;
-            if (!selectedName) {
-                alert("请先从下拉框中选择一个要删除的预设。");
-                return;
-            }
-
-            if (confirm(`真的要删除预设 "${selectedName}" 吗？这个操作无法撤销！`)) {
-                let presets = loadPresets();
-                presets = presets.filter(p => p.name !== selectedName);
-                savePresets(presets);
-                populatePresetSelector();
-                alert(`预设 "${selectedName}" 已删除。`);
-            }
-        });
-
-        dom.presetSelector.addEventListener('change', (e) => {
-            const selectedName = e.target.value;
-            if (!selectedName) return;
-
-            const presets = loadPresets();
-            const selectedPreset = presets.find(p => p.name === selectedName);
-
-            if (selectedPreset) {
-                state.chatTitle = selectedPreset.data.chatTitle;
-                state.users = JSON.parse(JSON.stringify(selectedPreset.data.users));
-                state.selfUserId = selectedPreset.data.selfUserId;
-                state.messages = [];
-
-                dom.chatTitleEditor.value = state.chatTitle;
-                renderUsersEditor();
-                renderMessagesEditor();
-                renderPreview();
-                alert(`已加载预设 "${selectedName}"，可以开始创作啦！`);
-            }
-        });
-
-
-        dom.chatTitleEditor.addEventListener('input', (e) => { state.chatTitle = e.target.value; renderPreview(); });
-        dom.addUserBtn.addEventListener('click', () => {
-            const newUser = { id: generateId(), nickname: `用户${state.users.length + 1}`, avatar: DEFAULT_AVATAR };
-            state.users.push(newUser);
-            if (state.users.length === 1) { state.selfUserId = newUser.id; }
-            renderUsersEditor(); renderMessagesEditor();
-        });
+    // === 新增：处理核心谜团生成 ===
+    // 逻辑优化：只有当当前没有谜团，或者新谜团与当前不同时才触发，防止重复显示
+    if (data.mystery_setup && (!gameState.mystery.active || gameState.mystery.title !== data.mystery_setup.title)) {
+        gameState.mystery.active = true;
+        gameState.mystery.title = data.mystery_setup.title;
+        gameState.mystery.truth = data.mystery_setup.truth;
+        // 截止日期 = 当前天数 + 偏移量
+        gameState.mystery.deadlineDay = gameState.day + (data.mystery_setup.days_limit || 3);
+        gameState.mystery.status = "pending";
         
-        dom.addSelfMessageBtn.addEventListener('click', () => {
-            if (!state.selfUserId) { alert('请先添加一个用户并将其“设为自己”！'); return; }
-            const newMessage = { id: generateId(), type: 'message', userId: state.selfUserId, contentType: 'text', content: '我的新消息[微笑]', isCollapsed: false };
-            state.messages.push(newMessage); renderMessagesEditor(); renderPreview();
-        });
-        dom.addOtherMessageBtn.addEventListener('click', () => {
-            const otherUser = state.users.find(u => u.id !== state.selfUserId);
-            if (!otherUser) { alert('请先添加一个“对方”用户！'); return; }
-            const newMessage = { id: generateId(), type: 'message', userId: otherUser.id, contentType: 'text', content: '对方的新消息[旺柴]', isCollapsed: false };
-            state.messages.push(newMessage); renderMessagesEditor(); renderPreview();
-        });
-        dom.addTimestampBtn.addEventListener('click', () => {
-            const timeString = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-            state.messages.push({ id: generateId(), type: 'timestamp', content: timeString, isCollapsed: false });
-            renderMessagesEditor(); renderPreview();
-        });
-
-        dom.userProfilesEditor.addEventListener('input', e => {
-            const target = e.target; const userDiv = target.closest('.user-profile'); if (!userDiv) return;
-            const user = state.users.find(u => u.id === userDiv.dataset.userId); if (!user) return;
-            if (target.classList.contains('nickname-input')) {
-                user.nickname = target.value;
-                renderPreview(); renderMessagesEditor();
-            }
-        });
-        dom.userProfilesEditor.addEventListener('change', e => {
-            const target = e.target; const userDiv = target.closest('.user-profile'); if (!userDiv) return;
-            if (target.classList.contains('avatar-file-input') && target.files && target.files[0]) {
-                const user = state.users.find(u => u.id === userDiv.dataset.userId);
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    user.avatar = event.target.result;
-                    renderUsersEditor(); renderMessagesEditor(); renderPreview();
-                };
-                reader.readAsDataURL(target.files[0]);
-            }
-            if(target.classList.contains('self-user-radio')) { state.selfUserId = target.value; renderPreview(); }
-        });
-        dom.userProfilesEditor.addEventListener('click', e => {
-            if (e.target.classList.contains('remove-user-btn')) {
-                const userIdToRemove = e.target.closest('.user-profile').dataset.userId;
-                state.users = state.users.filter(u => u.id !== userIdToRemove);
-                state.messages = state.messages.filter(m => m.userId !== userIdToRemove);
-                if (state.selfUserId === userIdToRemove) { state.selfUserId = state.users.length > 0 ? state.users[0].id : null; }
-                renderUsersEditor(); renderMessagesEditor(); renderPreview();
-            }
-        });
-        dom.messageListEditor.addEventListener('change', e => {
-            const target = e.target; const itemDiv = target.closest('.message-item-editor'); if (!itemDiv) return;
-            const item = state.messages.find(m => m.id === itemDiv.dataset.itemId); if (!item) return;
-            if (target.classList.contains('sender-select')) { item.userId = target.value; }
-            
-            if (target.classList.contains('message-content-type-select')) {
-                item.contentType = target.value;
-                if (item.contentType === 'image' && !item.content.startsWith('data:image')) { item.content = ''; }
-                if (item.contentType === 'voice' && typeof item.showTranscription === 'undefined') {
-                    item.showTranscription = true;
-                }
-            }
-            if (target.classList.contains('show-transcription-checkbox')) {
-                item.showTranscription = target.checked;
-            }
-
-            if (target.classList.contains('message-image-file-input') && target.files && target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (event) => { 
-                    item.content = event.target.result; 
-                    renderMessagesEditor(); 
-                    renderPreview(item.id); 
-                };
-                reader.readAsDataURL(target.files[0]);
-                return;
-            }
-            if (target.tagName === 'SELECT') {
-                renderMessagesEditor();
-            }
-            renderPreview(item.id);
-        });
-        dom.messageListEditor.addEventListener('input', e => {
-            const target = e.target; const itemDiv = target.closest('.message-item-editor'); if (!itemDiv) return;
-            const item = state.messages.find(m => m.id === itemDiv.dataset.itemId); if (!item) return;
-            if (target.classList.contains('content-textarea') || target.classList.contains('timestamp-input')) { item.content = target.value; }
-            
-            renderPreview(item.id);
-
-            const summarySpan = itemDiv.querySelector('.message-editor-summary');
-            
-            if (summarySpan && item.type === 'message') {
-                const user = state.users.find(u => u.id === item.userId);
-                const nickname = user ? user.nickname : '未知用户';
-                let summaryText = '';
-                if (item.contentType === 'text') {
-                    summaryText = `<span class="summary-type">[文本]</span> ${item.content.length > 20 ? item.content.substring(0, 20) + '...' : item.content}`;
-                } else if (item.contentType === 'voice') {
-                    const duration = Math.min(60, Math.ceil((item.content || '').length / 3));
-                    summaryText = `<span class="summary-type">[语音]</span> ${duration}"`;
-                } else { // image
-                    summaryText = `<span class="summary-type">[图片/表情]</span>`;
-                }
-                summarySpan.innerHTML = `${nickname}: ${summaryText}`;
-            } else if (summarySpan && item.type === 'timestamp') {
-                summarySpan.innerHTML = `<span class="summary-type">[时间戳]</span> ${item.content}`;
-            }
-        });
-
-        dom.messageListEditor.addEventListener('focusin', e => {
-            if (e.target.classList.contains('content-textarea')) {
-                activeTextarea = e.target;
-            }
-        });
-
-        dom.messageListEditor.addEventListener('click', e => {
-            const itemEditor = e.target.closest('.message-item-editor');
-            if (!itemEditor) return;
-            const item = state.messages.find(m => m.id === itemEditor.dataset.itemId);
-            if (!item) return;
-
-            if (e.target.classList.contains('emoji-btn')) {
-                const picker = itemEditor.querySelector('.emoji-picker');
-                if (!picker) return;
-                const editorBody = itemEditor.querySelector('.message-editor-body');
-                const isCurrentlyOpen = picker.classList.contains('show');
-
-                document.querySelectorAll('.emoji-picker.show').forEach(p => {
-                    p.classList.remove('show');
-                    const body = p.closest('.message-editor-body');
-                    if (body) body.classList.remove('overflow-visible');
-                });
-
-                if (!isCurrentlyOpen) {
-                    picker.classList.add('show');
-                    if (editorBody) editorBody.classList.add('overflow-visible');
-                }
-                return;
-            }
-
-            if (e.target.closest('.emoji-picker') && e.target.tagName === 'IMG') {
-                const code = e.target.dataset.code;
-                if (activeTextarea && code) {
-                    const start = activeTextarea.selectionStart;
-                    const end = activeTextarea.selectionEnd;
-                    const text = activeTextarea.value;
-                    activeTextarea.value = text.substring(0, start) + code + text.substring(end);
-                    activeTextarea.focus();
-                    activeTextarea.selectionStart = activeTextarea.selectionEnd = start + code.length;
-                    activeTextarea.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-                return;
-            }
-
-            if (e.target.closest('.copy-btn')) {
-                const itemToCopy = state.messages.find(m => m.id === item.id);
-                if (itemToCopy) {
-                    const newItem = JSON.parse(JSON.stringify(itemToCopy));
-                    newItem.id = generateId();
-                    newItem.isCollapsed = false; 
-                    
-                    const originalIndex = state.messages.findIndex(m => m.id === item.id);
-                    
-                    if (originalIndex > -1) {
-                        state.messages.splice(originalIndex + 1, 0, newItem);
-                    } else {
-                        state.messages.push(newItem);
-                    }
-                    
-                    renderMessagesEditor();
-                    renderPreview(newItem.id);
-                }
-                return;
-            }
-
-            if (e.target.closest('.delete-btn')) {
-                state.messages = state.messages.filter(m => m.id !== item.id);
-                renderMessagesEditor();
-                renderPreview(); // 删除后，让它默认滚动即可
-                return;
-            }
-            
-            if (e.target.classList.contains('drag-handle')) {
-                return;
-            }
-
-            if (e.target.closest('.message-editor-header')) {
-                item.isCollapsed = !item.isCollapsed;
-                itemEditor.classList.toggle('collapsed');
-            }
-        });
+        // 强制在描述中追加醒目的 UI 提示 (使用 div 块级元素防止混排)
+        data.description += `\n\n<div style="border:1px solid var(--accent-red); background:rgba(50,0,0,0.3); padding:15px; margin:15px 0; text-align:center; animation: blink 2s infinite;">
+            <div style="color:var(--accent-red); font-weight:bold; font-size:1.2rem; letter-spacing:2px;">⚠️ 触发核心谜团</div>
+            <div style="color:#fff; font-size:1.1rem; margin:5px 0;">『 ${gameState.mystery.title} 』</div>
+            <div style="color:#aaa; font-size:0.9rem;">必须在 Day ${gameState.mystery.deadlineDay} 结束前查清真相</div>
+        </div>`;
         
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.emoji-btn') && !e.target.closest('.emoji-picker')) {
-                document.querySelectorAll('.emoji-picker.show').forEach(picker => {
-                    picker.classList.remove('show');
-                    const editorBody = picker.closest('.message-editor-body');
-                    if (editorBody) {
-                        editorBody.classList.remove('overflow-visible');
-                    }
-                });
-            }
+        // 自动添加任务
+        gameState.quests.push({ 
+            id: 'mystery_'+Date.now(), 
+            text: `[核心] 解决谜团：${gameState.mystery.title} (截止: Day ${gameState.mystery.deadlineDay})`, 
+            active: true 
         });
+    }
+
+    // === 新增：处理谜团结算结果 ===
+    if (data.mystery_result) {
+        gameState.mystery.active = false; // 关闭当前谜团
+        gameState.mystery.truth = "";     // 清空真相，防止干扰后续
         
-        dom.fillExampleBtn.addEventListener('click', () => {
-            const user1Id = generateId(), user2Id = generateId(), user3Id = generateId();
-            const avatar1_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
-            const avatar2_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
-            const avatar3_b64 = 'https://i.postimg.cc/wxFMYFRV/20250914005309-18-472.jpg';
-            
-            state = {
-                chatTitle: 'V7.6紧急需求对齐群 (3)',
-                selfUserId: user1Id,
-                users: [
-                    { id: user1Id, nickname: '我 (前端)', avatar: avatar1_b64 },
-                    { id: user2Id, nickname: '产品经理-小王', avatar: avatar2_b64 },
-                    { id: user3Id, nickname: '后端-老李', avatar: avatar3_b64 }
-                ],
-                messages: [
-                    { id: generateId(), type: 'timestamp', content: '上午 10:30', isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '同志们，紧急同步一个需求！\n客户爸爸想要一个\'一键换肤\'功能，今天就要！', isCollapsed: false },
-                    { id: generateId(), type: 'message', userId: user1Id, contentType: 'voice', content: '今天就要？这工作量有点大啊，UI稿出来了吗？', showTranscription: true, isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '我这边接口也得大改，今天肯定搞不完。[捂脸]', isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'image', content: 'https://i.postimg.cc/76Z5nkCx/wechat-2025-09-12-233239-704.png', isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user2Id, contentType: 'text', content: '别急别急，我就是传达一下精神，大家看看这个图，是不是很形象？[奸笑]', isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user1Id, contentType: 'text', content: '哈哈哈哈[破涕为笑]，那我们还是先评估一下吧，明天给方案？', isCollapsed: true },
-                    { id: generateId(), type: 'message', userId: user3Id, contentType: 'text', content: '同意+1', isCollapsed: true }
-                ]
-            };
-            dom.chatTitleEditor.value = state.chatTitle;
-            renderUsersEditor(); renderMessagesEditor(); renderPreview();
-        });
-
-        dom.resetBtn.addEventListener('click', () => {
-            if (confirm('确定要重置所有内容吗？此操作不可撤销。\n（注意：这不会删除你已保存的预设）')) {
-                state = { chatTitle: '', selfUserId: null, users: [], messages: [] };
-                dom.chatTitleEditor.value = '';
-                dom.presetSelector.value = '';
-                renderUsersEditor(); renderMessagesEditor(); renderPreview();
-                init(true);
-            }
-        });
-        
-        dom.clearMessagesBtn.addEventListener('click', () => {
-            if (confirm('确定要清空所有聊天记录吗？此操作会保留当前的用户设置。')) {
-                state.messages = [];
-                renderMessagesEditor();
-                renderPreview();
-            }
-        });
-
-        dom.clearUsersBtn.addEventListener('click', () => {
-            if (confirm('确定要清空所有用户吗？\n注意：这会一并清空所有聊天记录，但会保留聊天标题。此操作不可撤销。')) {
-                state.users = [];
-                state.messages = [];
-                state.selfUserId = null;
-                
-                renderUsersEditor();
-                renderMessagesEditor();
-                renderPreview();
-            }
-        });
-
-        function exportLongImage() {
-            const captureArea = document.getElementById('capture-area');
-            const chatMessages = dom.chatMessagesContainer;
-            const originalPhoneHeight = captureArea.style.height;
-            const originalMessagesHeight = chatMessages.style.height;
-            
-            const originalMessagesOverflow = chatMessages.style.overflow;
-            
-            dom.exportLongBtn.textContent = '生成中...';
-            dom.exportLongBtn.disabled = true;
-            dom.exportCurrentBtn.disabled = true;
-            
-            captureArea.style.height = 'auto';
-            chatMessages.style.height = 'auto';
-            
-            chatMessages.style.overflowY = 'visible';
-            chatMessages.style.overflowX = 'hidden';
-
-            htmlToImage.toPng(captureArea, { quality: 1.0, pixelRatio: 2, backgroundColor: '#ededed', cacheBust: true })
-            .then(function (dataUrl) {
-                const link = document.createElement('a');
-                link.download = `${state.chatTitle || '聊天记录'}_长截图.png`;
-                link.href = dataUrl;
-                link.click();
-            })
-            .catch(function (error) {
-                console.error('长截图导出失败!', error);
-                alert('图片导出失败！\n\n这可能是由于网络图片加载问题。请检查所有图片（头像、消息图片）是否都能正常显示，然后重试。\n如果问题持续，请按 F12 查看控制台错误。');
-            })
-            .finally(() => {
-                captureArea.style.height = originalPhoneHeight;
-                chatMessages.style.height = originalMessagesHeight;
-                
-                chatMessages.style.overflow = originalMessagesOverflow;
-
-                dom.exportLongBtn.textContent = '导出长截图';
-                dom.exportLongBtn.disabled = false;
-                dom.exportCurrentBtn.disabled = false;
-            });
+        if (data.mystery_result.success) {
+            // 成功奖励
+            gameState.reputation += 20;
+            gameState.money += 1000;
+            gameState.stats.san = Math.min(gameState.stats.maxSan, gameState.stats.san + 20);
+            data.description += `\n<span style="color:#0f0; font-size:1.2rem;">[ ✅ 谜题破解成功！ ]</span>\n获得：声望+20, 资金+1000, SAN+20`;
+        } else {
+            // 失败惩罚
+            gameState.reputation -= 10;
+            gameState.stats.san -= 20;
+            gameState.stats.maxHp -= 10; // 永久扣血上限
+            data.description += `\n<span style="color:#f00; font-size:1.2rem;">[ ❌ 谜题破解失败... ]</span>\n惩罚：声望-10, SAN-20, 生命上限永久-10`;
         }
-        function exportCurrentView() {
-            const captureArea = document.getElementById('capture-area');
-            const contentWrapper = document.getElementById('messages-content-wrapper');
-            const chatMessages = dom.chatMessagesContainer;
-            const scrollTop = chatMessages.scrollTop;
+    }
 
-            const originalMessagesOverflow = chatMessages.style.overflow;
+    // === 修复：每次剧情更新时，强制刷新UI状态 ===
+    updateStatsUI(); 
 
-            dom.exportCurrentBtn.textContent = '生成中...';
-            dom.exportLongBtn.disabled = true;
-            dom.exportCurrentBtn.disabled = true;
+    document.getElementById('scene-title').innerText = gameState.currentLocation;
+    
+    // === 根据地点名字自动切换背景图 ===
+    updateSceneBackground(gameState.currentLocation);
 
-            if (contentWrapper) {
-                contentWrapper.style.transform = `translateY(-${scrollTop}px)`;
+    // 1. 处理 SAN Check
+    if (data.event === 'san_check') {
+        const roll = Math.floor(Math.random() * 100) + 1;
+        const success = roll <= gameState.stats.san;
+        const dmg = success ? 0 : Math.floor(Math.random() * 10) + 1;
+        gameState.stats.san -= dmg;
+        updateStatsUI(); // 数值变了再刷一次
+        const checkText = `[SAN检定: ${roll}/${gameState.stats.san + dmg}] ${success ? '你稳住了心神。' : '你的理智受到了冲击！(SAN -'+dmg+')'}`;
+        data.description = checkText + "\n" + data.description;
+    }
+
+    // 2. 处理掉落物品 (Loot)
+    if (data.loot && Array.isArray(data.loot) && data.loot.length > 0) {
+        let lootText = "";
+        data.loot.forEach(item => {
+            // 容错处理1：如果AI发疯返回了纯字符串（例如 ["钥匙"]），把它包装成对象
+            if (typeof item === 'string') {
+                item = { name: item, type: 'misc', desc: '看起来很有用。' };
             }
             
-            chatMessages.style.overflow = 'hidden';
+            // 容错处理2：核心修复！如果物品无效或没有名字，直接跳过，绝不显示 undefined
+            if (!item || !item.name) return; 
 
-            htmlToImage.toPng(captureArea, { quality: 1.0, pixelRatio: 2, backgroundColor: '#ededed', cacheBust: true })
-            .then(function (dataUrl) {
-                const link = document.createElement('a');
-                link.download = `${state.chatTitle || '聊天记录'}_当前页.png`;
-                link.href = dataUrl;
-                link.click();
-            })
-            .catch(function (error) {
-                console.error('当前页截图导出失败!', error);
-                alert('图片导出失败！\n\n这可能是由于网络图片加载问题。请检查所有图片（头像、消息图片）是否都能正常显示，然后重试。\n如果问题持续，请按 F12 查看控制台错误。');
-            })
-            .finally(() => {
-                if (contentWrapper) {
-                    contentWrapper.style.transform = '';
-                }
-
-                chatMessages.style.overflow = originalMessagesOverflow;
-
-                dom.exportCurrentBtn.textContent = '导出当前页';
-                dom.exportLongBtn.disabled = false;
-                dom.exportCurrentBtn.disabled = false;
-            });
-        }
-        dom.exportLongBtn.addEventListener('click', exportLongImage);
-        dom.exportCurrentBtn.addEventListener('click', exportCurrentView);
-
-        function init(isReset = false) {
-            populatePresetSelector();
-
-            new Sortable(dom.messageListEditor, {
-                animation: 150,
-                handle: '.drag-handle',
-                ghostClass: 'sortable-ghost',
-                onEnd: function (evt) {
-                    const movedItem = state.messages.splice(evt.oldIndex, 1)[0];
-                    state.messages.splice(evt.newIndex, 0, movedItem);
-                    renderPreview();
-                }
-            });
-            
-            if (state.users.length === 0 || isReset) {
-                dom.addUserBtn.click();
-                dom.addUserBtn.click();
-                state.users[0].nickname = '我';
-                state.users[1].nickname = '对方昵称';
-                state.chatTitle = state.users[1].nickname;
-                dom.chatTitleEditor.value = state.chatTitle;
-                state.messages.forEach(m => m.isCollapsed = true);
-                renderUsersEditor(); renderMessagesEditor(); renderPreview();
+            const existing = gameState.inventory.find(i => i.name === item.name);
+            if (existing && existing.type === 'consumable') {
+                existing.count++;
+            } else if (!existing) {
+                item.count = 1;
+                item.id = item.id || 'item_' + Date.now();
+                if (!item.desc_insane) item.desc_insane = "这东西看起来扭曲而恶心。";
+                gameState.inventory.push(item);
             }
+            lootText += `\n[获得物品: ${item.name}]`;
+        });
+        data.description += lootText;
+    }
+
+    // 3. 处理地图解锁
+    // 修改：增加判断，如果 AI 返回 "none" 则不执行
+    if (data.unlock_location && data.unlock_location.toLowerCase() !== "none") {
+        const locName = data.unlock_location;
+        if (!gameState.unlockedLocations.find(l => l.name === locName)) {
+            gameState.unlockedLocations.push({ name: locName, id: 'loc_'+Date.now(), locked: false, type: 'danger' });
+            data.description += `\n[地图更新: 已标记 "${locName}"]`;
         }
-        init();
+    }
+
+    // 4. 处理新线索 (新增)
+    // 修改：增加判断，如果 AI 返回 "none" 则不显示
+    if (data.new_clue && data.new_clue.toLowerCase() !== "none") {
+        gameState.clues.push(data.new_clue);
+        data.description += `\n<span style="color:var(--accent-gold)">[ 记录线索: ${data.new_clue} ]</span>`;
+    }
+
+
+    // 5. 处理任务更新 (新增)
+    if (data.update_quest) {
+        // 简单起见，我们把旧任务都标记为完成，添加新任务
+        gameState.quests.forEach(q => q.active = false);
+        gameState.quests.push({ id: 'q_'+Date.now(), text: data.update_quest, active: true });
+        data.description += `\n<span style="color:var(--accent-glitch); border:1px solid var(--accent-glitch); padding:2px;">[ 任务更新: ${data.update_quest} ]</span>`;
+    }
+
+    // 6. 处理声望/金钱变化 (AI 可能会在描述里暗示，但我们可以加个简单的关键词检测)
+    // 这里做一个简单的逻辑：如果描述里包含 "声望提升" 或 "名声大噪"，我们手动加一点
+    if (data.description.includes("声望提升") || data.description.includes("名声")) {
+        gameState.reputation += 5;
+        data.description += `\n<span style="color:var(--accent-gold)">[ ▲ 声望提升 ]</span>`;
+    }
+    // 如果包含 "获得报酬" 或 "转账"
+    if (data.description.includes("获得报酬") || data.description.includes("入账")) {
+        // 简单的正则提取数字，或者让AI以后明确返回 money 字段。
+        // 暂时我们让AI自由发挥，这里只做视觉提示，数值由AI下次读取时更新（如果AI没改，我们手动加一点低保）
+        // 为了保险，我们给个低保：
+        gameState.money += 100; 
+        data.description += `\n<span style="color:var(--accent-glitch)">[ ¥ 资金变动 ]</span>`;
+    }
+
+
+    // 状态切换：等待 -> 就绪
+    avgState.isWaitingForAI = false;
+    avgState.isReadyToPlay = true;
+    avgState.pendingChoices = [];
+    avgState.tempData = data; 
+
+    // 【修复】确保选项层是关闭且空的，防止UI穿模
+    const choicesLayer = document.getElementById('choices-layer');
+    choicesLayer.classList.remove('active');
+    choicesLayer.innerHTML = ''; 
+
+    // 视觉反馈
+    const textEl = document.getElementById('main-text');
+    textEl.innerHTML = `<span style="color: var(--accent-glitch); animation: blink 0.5s infinite;">[ 信号已捕获 / 点击读取 ]</span>`;
+    document.getElementById('click-arrow').classList.add('show');
+}
+
+function startPlayingText(data) {
+    let rawText = data.description.replace(/<br>/g, "\n");
+    
+    // === 核心修复：保护 HTML 标签不被标点符号切碎 ===
+    // 1. 先把所有的 <span...>...</span> 提取出来，用占位符代替
+    const htmlTags = [];
+    rawText = rawText.replace(/<span[^>]*>.*?<\/span>/g, (match) => {
+        htmlTags.push(match);
+        return `___HTML_PROTECT_${htmlTags.length - 1}___`; // 使用不含标点的占位符
     });
+
+    // 2. 执行原有的分句逻辑（现在不会切断HTML了，因为占位符里没标点）
+    let sentences = rawText.match(/[^。！？\n]+[。！？\n]+|[^。！？\n]+$/g) || [rawText];
+    
+    // 3. 把占位符还原回 HTML 标签，并存入队列
+    avgState.textQueue = sentences.map(s => {
+        let text = s.trim();
+        // 检查并还原
+        if (text.includes('___HTML_PROTECT_')) {
+            text = text.replace(/___HTML_PROTECT_(\d+)___/g, (m, id) => htmlTags[id]);
+        }
+        return text;
+    }).filter(s => s.length > 0);
+    
+    // 重置状态
+    avgState.pendingChoices = data.choices || []; 
+    document.getElementById('choices-layer').innerHTML = ''; 
+    document.getElementById('choices-layer').classList.remove('active');
+    document.getElementById('click-arrow').classList.remove('show');
+    
+    nextText(); 
+}
+
+function nextText() {
+    if (avgState.isWaitingForAI) return;
+
+    if (avgState.isReadyToPlay) {
+        avgState.isReadyToPlay = false;
+        startPlayingText(avgState.tempData);
+        return;
+    }
+
+    const textEl = document.getElementById('main-text');
+    const arrowEl = document.getElementById('click-arrow');
+
+    // 1. 如果正在打字，玩家点击了，瞬间显示全句
+    if (avgState.isTyping) {
+        clearInterval(avgState.typingTimer);
+        // 这里改用 innerHTML，防止打断时样式失效
+        textEl.innerHTML = avgState.currentFullText; 
+        avgState.isTyping = false;
+        arrowEl.classList.add('show');
+        return;
+    }
+
+    // 2. 队列里还有话没说完
+    if (avgState.textQueue.length > 0) {
+        const nextLine = avgState.textQueue.shift();
+        avgState.currentFullText = nextLine;
+        
+        // === 核心修复开始：检测是否包含HTML标签 ===
+        // 如果这一行是以 < 开头的（比如任务更新、获得物品的提示），说明它是HTML代码
+        // 我们直接用 innerHTML 渲染它，跳过打字机动画，否则会显示乱码
+        if (nextLine.trim().startsWith('<')) {
+            textEl.innerHTML = nextLine; 
+            // 存入日志时，把HTML标签去掉，只留纯文本，不然日志里也会乱码
+            addToLog(nextLine.replace(/<[^>]+>/g, '')); 
+            arrowEl.classList.add('show'); // 直接显示“继续”箭头
+            return; 
+        }
+        // === 核心修复结束 ===
+
+        avgState.charIndex = 0;
+        avgState.isTyping = true;
+        textEl.innerHTML = ""; // 清空当前文本
+        arrowEl.classList.remove('show');
+        addToLog(nextLine); // 普通对话存入日志
+
+        avgState.typingTimer = setInterval(() => {
+            // 这里用 textContent 追加字符，防止打字过程中把 HTML 标签拆散
+            textEl.textContent += avgState.currentFullText.charAt(avgState.charIndex);
+            avgState.charIndex++;
+            if (avgState.charIndex >= avgState.currentFullText.length) {
+                clearInterval(avgState.typingTimer);
+                avgState.isTyping = false;
+                arrowEl.classList.add('show');
+            }
+        }, 30); // 打字速度
+        return;
+    }
+
+    // 3. 没话说了，显示选项
+    if (!document.getElementById('choices-layer').classList.contains('active')) {
+        showChoices(avgState.pendingChoices);
+    }
+}
+
+function showChoices(choices) {
+    const layer = document.getElementById('choices-layer');
+    layer.innerHTML = ''; // 再次清空，确保安全
+    if(!choices || choices.length === 0) {
+        choices = [{text: "继续...", action: "continue"}];
+    }
+    choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'pixel-btn';
+        let btnText = c.text;
+        
+        // 消耗时间提示
+        if (c.costTime) btnText += ` [⏳]`;
+        // 消耗金钱提示
+        if (c.costMoney) btnText += ` [¥${c.costMoney}]`;
+        // 检定提示
+        if (c.check) btnText += ` [${c.check}]`;
+
+        btn.innerText = btnText;
+        btn.onclick = (e) => { e.stopPropagation(); handleChoice(c); };
+        layer.appendChild(btn);
+    });
+    layer.classList.add('active');
+}
+
+// --- 核心场景逻辑 ---
+
+async function handleScene(action, extraInfo = "") {
+    let prompt = "";
+    let isSystemEvent = false;
+
+    // 1. 强制开场流程 (同时生成第一个核心谜团)
+    if (action === "intro_day1") {
+        gameState.currentLocation = "404号事务所";
+        // 强制要求生成 mystery_setup
+        prompt = `游戏开始。玩家${gameState.player.name}刚搬进404号事务所。
+        请描述玩家整理行李时的诡异氛围。
+        同时，**必须**生成第一个核心谜团（Mystery Setup）。
+        谜团要求：一个具体的、诡异的事件（如：半夜的敲门声、墙里的老鼠声其实是人声等）。
+        设定一个“真相”（玩家不可见），并设定解决期限（2-4天）。
+        **注意：不要在 description 文本里写“[触发谜团]”之类的系统提示，只返回 JSON 字段即可，UI会自动渲染提示框。**`;
+        isSystemEvent = true;
+    } 
+
+    // 2. 事务所电脑交互
+    else if (action === "check_email") {
+        if (!gameState.mystery.active) {
+            // 没有谜团时，强制引导生成新谜团
+            prompt = `玩家查看了电脑邮件。请生成一个新的委托或怪谈，并**必须**返回 mystery_setup 字段来开启这个新谜团。
+            描述邮件的内容，越诡异越好。`;
+        } else {
+            // 有谜团时，提供线索
+            prompt = `玩家利用电脑查询关于“${gameState.mystery.title}”的资料。
+            请根据真相“${gameState.mystery.truth}”，提供一条相关的线索（new_clue）。`;
+        }
+    }
+
+    // 3. 移动逻辑
+    else if (action === "move") {
+        const oldLocation = gameState.currentLocation;
+        gameState.currentLocation = extraInfo;
+        prompt = `玩家决定离开【${oldLocation}】，前往【${extraInfo}】。
+        请按以下逻辑生成剧情：
+        1. 描述移动过程。
+        2. 描述抵达【${extraInfo}】后的景象。
+        当前时间：${TIME_PHASES[gameState.timePhase]}。`;
+        if (gameState.timePhase === 3) prompt += " 夜晚充满了危险气息。";
+    }
+    // 4. 睡觉结算 (包含谜团截止日判定)
+    else if (action === "sleep") {
+        // 检查是否到达截止日期
+        if (gameState.mystery.active && gameState.day >= gameState.mystery.deadlineDay) {
+            // 触发强制结算
+            handleScene('resolve_mystery_check');
+            return; // 中断普通睡觉逻辑
+        }
+
+        // 普通睡觉
+        gameState.stats.hp = Math.min(gameState.stats.maxHp, gameState.stats.hp + 30);
+        gameState.stats.san = Math.min(gameState.stats.maxSan, gameState.stats.san + 15);
+        gameState.day++;
+        gameState.timePhase = 0;
+        updateStatsUI();
+        prompt = `玩家睡了一觉，度过了平安夜。现在是第${gameState.day}天上午。描述醒来的感觉。`;
+    }
+    // === 新增：谜团结算判定 ===
+    else if (action === "resolve_mystery_check") {
+        isSystemEvent = true;
+        // 让AI根据玩家的历史行为判断是否解开了谜题
+        prompt = `【核心谜团结算时刻】
+        当前谜团：${gameState.mystery.title}
+        设定真相：${gameState.mystery.truth}
+        
+        请回顾玩家最近几天的调查记录（History），判断玩家是否已经发现了真相或解决了源头。
+        
+        请严格返回JSON，包含 "mystery_result": { "success": true/false, "reason": "..." }。
+        并描述结算剧情：
+        - 如果成功：描述玩家如何揭穿了真相，或者在梦中击败了梦魇。
+        - 如果失败：描述真相如何吞噬了玩家（例如：敲门声变成了破门而入，或者玩家被某种诅咒缠身），并给予惩罚。
+        
+        无论成功失败，时间都会进入第二天。`;
+        
+        // 结算后强制过一天
+        gameState.day++;
+        gameState.timePhase = 0;
+    }
+    // === 自由行动判定逻辑 ===
+    else if (action === "judge_action") {
+        isSystemEvent = true;
+        prompt = `玩家想要执行自由行动：【${extraInfo}】。
+        请判断该行动是否需要进行属性检定。
+        请严格返回JSON格式：{"check_needed": "PHY"|"DEX"|"INT"|"CHA"|"MYS"|"NONE", "reason": "..."}`;
+    }
+    // === 判定后执行逻辑 ===
+    else if (action === "resolve_action") {
+        prompt = `玩家执行了行动。${extraInfo}。
+        请根据这个结果生成精彩的剧情描述。如果失败，请描述后果。`;
+    }
+    // === 无判定自由行动 ===
+    else if (action === "free_action") {
+        prompt = `玩家执行了自由行动：【${extraInfo}】。
+        请直接描述玩家的行为和结果。`;
+    }
+    // 5. 通用剧情
+    else {
+        prompt = `玩家选择了：${extraInfo}。继续剧情。`;
+    }
+
+    // 消耗时间逻辑
+    if (action === "work" || action === "explore") {
+        advanceTime();
+    }
+
+    // UI 状态切换
+    avgState.isWaitingForAI = true;
+    avgState.pendingChoices = [];
+    document.getElementById('main-text').innerHTML = `<span style="animation: blink 1s infinite;">正在连接灵界信号...</span>`;
+    
+    // 【核心修复】强制清空旧按钮，防止回弹！
+    const choicesLayer = document.getElementById('choices-layer');
+    choicesLayer.classList.remove('active');
+    choicesLayer.innerHTML = ''; 
+
+    document.getElementById('click-arrow').classList.remove('show');
+
+    // === 调用 AI ===
+    const result = await callAI(prompt, isSystemEvent);
+    
+    // === 判定逻辑分支处理 ===
+    if (action === "judge_action") {
+        avgState.isWaitingForAI = false; // 判定结束，准备下一步
+        
+        if (result && result.check_needed && result.check_needed !== "NONE") {
+            // 需要检定：触发骰子动画
+            const checkObj = {
+                text: extraInfo, // 原始行动文本
+                action: 'resolve_action', // 下一步动作
+                check: result.check_needed // 需要的属性
+            };
+            // 延迟一点点让玩家看到“判定中”
+            document.getElementById('main-text').innerText = `[ 系统判定: 需要 ${result.check_needed} 检定 ]`;
+            setTimeout(() => performDiceRoll(checkObj), 500);
+        } else {
+            // 不需要检定：直接执行
+            handleScene('free_action', extraInfo);
+        }
+        return; // 判定请求不直接生成剧情，直接返回
+    }
+
+    // === 常规剧情处理 ===
+    if (result) processSceneData(result);
+    else {
+        avgState.isWaitingForAI = false;
+        document.getElementById('main-text').innerText = "连接断开。";
+        showChoices([{text: "重试", action: action}]);
+    }
+}
+
+function advanceTime() {
+    if (gameState.timePhase < 3) {
+        gameState.timePhase++;
+        updateStatsUI();
+    }
+}
+
+async function handleChoice(choice) {
+    // 1. 检查金钱
+    if (choice.costMoney && gameState.money < choice.costMoney) {
+        alert("资金不足！");
+        return;
+    }
+    
+    // 2. 检查时间
+    if (choice.costTime && gameState.timePhase >= 3) {
+        alert("太晚了，必须先休息。");
+        return;
+    }
+
+    // 3. 扣除金钱 (如果有)
+    if (choice.costMoney) {
+        gameState.money -= choice.costMoney;
+        updateStatsUI();
+    }
+
+    // 4. 属性检定逻辑 (修改点：拦截并播放动画)
+    if (choice.check) {
+        // 这里的 return 非常重要，它打断了直接发送请求，转而去执行 performDiceRoll
+        performDiceRoll(choice); 
+        return; 
+    } 
+    
+    // 5. 如果没有检定，直接执行普通剧情
+    handleScene(choice.action, choice.text);
+}
+
+// --- 新增：骰子动画逻辑 ---
+function performDiceRoll(choice) {
+    const layer = document.getElementById('dice-layer');
+    const valEl = document.getElementById('dice-val');
+    const resEl = document.getElementById('dice-result');
+    const targetEl = document.getElementById('target-val');
+    const attrEl = document.getElementById('check-attr');
+    const box = document.getElementById('dice-box');
+
+    const attr = choice.check.toLowerCase();
+    const statVal = gameState.stats[attr] || 10;
+
+    // 初始化界面状态
+    layer.style.display = 'flex';
+    resEl.innerText = '';
+    box.style.borderColor = 'var(--fg)';
+    box.style.transform = 'scale(1)';
+    valEl.style.color = 'var(--fg)';
+    targetEl.innerText = statVal;
+    attrEl.innerText = choice.check;
+
+    // 动画阶段：数字狂跳
+    let count = 0;
+    const maxCount = 15; // 跳动次数
+    const interval = setInterval(() => {
+        valEl.innerText = Math.floor(Math.random() * 20) + 1;
+        count++;
+        // 增加一点随机震动感
+        box.style.transform = `rotate(${Math.random()*4-2}deg)`;
+        
+        if(count >= maxCount) {
+            clearInterval(interval);
+            finalizeRoll(choice, statVal);
+        }
+    }, 60); // 60ms跳一次
+}
+
+function finalizeRoll(choice, statVal) {
+    const roll = Math.floor(Math.random() * 20) + 1; // 真正的命运一掷
+    const success = roll <= statVal; // D20规则：小于等于属性值算成功
+    
+    const valEl = document.getElementById('dice-val');
+    const resEl = document.getElementById('dice-result');
+    const box = document.getElementById('dice-box');
+
+    valEl.innerText = roll;
+    box.style.transform = 'rotate(0deg)';
+
+    // 视觉反馈
+    if(success) {
+        resEl.innerText = "SUCCESS";
+        resEl.style.color = "#0f0"; // 绿色
+        box.style.borderColor = "#0f0";
+        valEl.style.color = "#0f0";
+        box.style.boxShadow = "0 0 30px rgba(0, 255, 0, 0.3)";
+    } else {
+        resEl.innerText = "FAILURE";
+        resEl.style.color = "#f00"; // 红色
+        box.style.borderColor = "#f00";
+        valEl.style.color = "#f00";
+        box.style.boxShadow = "0 0 30px rgba(255, 0, 0, 0.3)";
+        // 失败震动特效
+        box.style.animation = "shake 0.5s";
+        setTimeout(()=> box.style.animation = "", 500);
+    }
+
+    // 停顿 1.5秒 让玩家看清结果，然后继续剧情
+    setTimeout(() => {
+        document.getElementById('dice-layer').style.display = 'none';
+        
+        // 构造结果文本
+        const resultText = `行动: ${choice.text} (检定${choice.check}: 掷出${roll} / 目标${statVal} -> ${success ? "成功" : "失败"})`;
+        
+        // 如果是自由行动触发的（action是resolve_action），走resolve流程
+        // 如果是按钮触发的（action是普通剧情key），也把结果带进去
+        // 统一调用 handleScene，把结果拼在 extraInfo 里
+        
+        // 这里的 choice.action 可能是 'resolve_action' (自由行动) 或 'break_door' (按钮)
+        // 无论哪种，我们都把结果传给 AI
+        handleScene(choice.action, resultText);
+        
+    }, 1500);
+}
+
+
+// --- 4. 事务所交互逻辑 ---
+function handleOfficeAction(type) {
+    // === 修复：增加地点校验，防止在外面操作事务所设施 ===
+    if (gameState.currentLocation !== "404号事务所") {
+        addToLog("离得太远了，无法操作。");
+        alert("你现在不在事务所，无法进行此操作！");
+        updateStatsUI(); // 强制刷新一下UI把按钮藏起来
+        return;
+    }
+
+    if (type === 'sleep') {
+        if (confirm("结束这一天并睡觉？(恢复HP/SAN)")) {
+            handleScene('sleep');
+        }
+}
+    else if (type === 'computer') {
+        // 如果当前没有谜团，电脑是获取新谜团的主要途径
+        if (!gameState.mystery.active) {
+            handleScene('check_email', '查看电脑上的委托邮件（尝试获取新谜团）');
+        } else {
+            // 如果有谜团，电脑可能提供线索
+            handleScene('check_email', '查询关于当前谜团的资料');
+        }
+    }
+
+// --- 5. 物品栏逻辑 ---
+
+function showInventory() {
+    const list = document.getElementById('inventory-list');
+    const msg = document.getElementById('empty-bag-msg');
+    list.innerHTML = '';
+    
+    if (gameState.inventory.length === 0) {
+        msg.style.display = 'block';
+    } else {
+        msg.style.display = 'none';
+        const isInsane = gameState.stats.san < 30;
+
+        gameState.inventory.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = `item-card ${isInsane ? 'insane-item' : ''} ${item.type === 'key' ? 'key-item' : ''}`;
+            
+            const displayName = isInsane && item.desc_insane ? "???" : item.name;
+            const displayDesc = isInsane && item.desc_insane ? item.desc_insane : item.desc;
+
+            let actionHtml = '';
+            if (item.type === 'consumable') {
+                actionHtml = `<button class="pixel-btn" style="font-size:0.8rem; padding:5px;" onclick="useItem(${index})">使用</button>`;
+            } else {
+                actionHtml = `<span style="font-size:0.8rem; color:var(--dim)">[关键]</span>`;
+            }
+
+            card.innerHTML = `
+                <div class="item-info">
+                    <div class="item-name">${displayName} <span class="item-count">x${item.count}</span></div>
+                    <div class="item-desc">${displayDesc}</div>
+                </div>
+                <div class="item-actions">${actionHtml}</div>
+            `;
+            list.appendChild(card);
+        });
+    }
+    document.getElementById('inventory-layer').style.display = 'flex';
+}
+
+function useItem(index) {
+    const item = gameState.inventory[index];
+    if (!item) return;
+
+    if (item.effect) {
+        if (item.effect.includes("hp+")) {
+            const val = parseInt(item.effect.split('+')[1]);
+            gameState.stats.hp = Math.min(gameState.stats.maxHp, gameState.stats.hp + val);
+            alert(`使用了 ${item.name}，HP恢复了 ${val}`);
+        }
+        if (item.effect.includes("san+")) {
+            const val = parseInt(item.effect.split('+')[1]);
+            gameState.stats.san = Math.min(gameState.stats.maxSan, gameState.stats.san + val);
+            alert(`使用了 ${item.name}，理智恢复了 ${val}`);
+        }
+    }
+
+    item.count--;
+    if (item.count <= 0) {
+        gameState.inventory.splice(index, 1);
+    }
+    updateStatsUI();
+    showInventory();
+}
+
+// --- 5.5 手机逻辑 (美化增强版) ---
+
+function showPhone() {
+    document.getElementById('phone-layer').style.display = 'flex';
+    closePhoneApp(); // 默认显示主屏幕
+    
+    // 更新状态栏
+    document.getElementById('phone-time').innerText = `${TIME_PHASES[gameState.timePhase]}`;
+    document.getElementById('phone-carrier').innerText = gameState.currentLocation === "404号事务所" ? "WIFI: 404_GUEST" : "5G";
+}
+
+function closePhoneApp() {
+    const homeGrid = document.getElementById('phone-home');
+    
+    // === 修复点：显式地把 display 改回 grid，否则它会一直保持 none (不显示) ===
+    homeGrid.style.display = 'grid'; 
+    
+    // 稍微延迟 10ms 再移除透明度隐藏类，这样能让淡入动画生效，看起来更丝滑
+    setTimeout(() => {
+        homeGrid.classList.remove('hidden');
+    }, 10);
+
+    document.getElementById('phone-display-area').style.display = 'none';
+}
+
+async function handlePhoneAction(app) {
+    const homeGrid = document.getElementById('phone-home');
+    const displayArea = document.getElementById('phone-display-area');
+    const contentDiv = document.getElementById('phone-content');
+    const titleEl = document.getElementById('current-app-title');
+
+    // 切换视图动画
+    homeGrid.classList.add('hidden');
+    setTimeout(() => {
+        homeGrid.style.display = 'none';
+        displayArea.style.display = 'flex';
+    }, 300);
+
+    contentDiv.innerHTML = `<div class="loading-text" style="margin-top:50px;">正在连接服务器...</div>`;
+    
+    let prompt = "";
+    let appName = "";
+
+    // 定义 Prompt 和 标题
+    if (app === 'takeout') {
+        appName = "饱了么外卖";
+        if (gameState.money < 50) {
+            contentDiv.innerHTML = `<div style="text-align:center; margin-top:50px; color:var(--accent-red);">⚠️ 余额不足 (需要 ¥50)</div>`;
+            return;
+        }
+        gameState.money -= 50;
+        gameState.stats.hp = Math.min(gameState.stats.maxHp, gameState.stats.hp + 10);
+        updateStatsUI();
+        
+        // === 优化点：严厉禁止旁白，确保小票格式整洁 ===
+        prompt = `玩家点了一份外卖（花费50元）。请生成一份【外卖小票内容】。
+        严禁输出任何环境描写、剧情旁白！我只要小票上的文字！
+        格式要求：
+        第一行：菜名
+        第二行：简短的口感描述（好吃或难吃）
+        第三行：店铺名`;
+    } 
+    else if (app === 'news') {
+        appName = "雾川早报";
+        prompt = `生成一条关于雾川市的【新闻报道】。
+        格式要求：第一行是新闻标题（震惊体或严肃体），剩余部分是正文。内容要包含一些都市怪谈或政府掩盖真相的暗示。`;
+    }
+    else if (app === 'sns') {
+        appName = "树洞社区";
+        prompt = `生成3条匿名的社交网络动态。
+        格式要求：每条动态之间用 "|||" 分隔。内容反映市民的焦虑、目击怪物的传闻或无意义的疯狂呓语。`;
+    }
+    else if (app === 'msg') {
+        appName = "未读短信";
+        // === 修改点1：加强 Prompt，禁止旁白 ===
+        prompt = `生成2-3条短信。
+        严禁输出任何环境描写或旁白！直接输出数据！
+        格式要求：每条短信之间用 "|||" 分隔。
+        每条短信严格格式：[发送者名字]：[短信内容]。
+        内容可以是垃圾广告、神秘人的警告、或者催债信息。其中一条必须看起来很危险或乱码。`;
+    }
+
+    titleEl.innerText = appName;
+
+    // 调用 AI
+    const result = await callAI(prompt, true); 
+    
+    if (result) {
+        const text = result.description;
+        let html = "";
+
+        // === 根据不同APP渲染不同模板 ===
+        
+        // 1. 外卖渲染 (小票风格)
+        if (app === 'takeout') {
+            const lines = text.split('\n').filter(l => l.trim());
+            const dish = lines[0] || "未知肉";
+            const desc = lines[1] || "味道像嚼过的槟榔。";
+            const shop = lines[2] || "黑巷子第4号摊位";
+            
+            html = `
+                <div class="receipt-card">
+                    <div class="receipt-header">=== 订单 #89757 ===</div>
+                    <div class="receipt-item"><span>${dish}</span><span>x1</span></div>
+                    <div class="receipt-item" style="color:#555; font-size:0.8rem;">${desc}</div>
+                    <div style="border-bottom:1px dashed #000; margin:10px 0;"></div>
+                    <div class="receipt-item"><span>配送费</span><span>¥5.00</span></div>
+                    <div class="receipt-item"><span>打包费</span><span>¥2.00</span></div>
+                    <div class="receipt-total">实付: ¥50.00</div>
+                    <div class="receipt-footer">
+                        店铺: ${shop}<br>
+                        感谢您的惠顾<br>
+                        <span style="font-size:0.6rem">食物中毒概不负责</span>
+                    </div>
+                </div>
+                <div style="text-align:center; margin-top:20px; color:var(--accent-glitch);">
+                    [ HP +10 ] [ 饱腹感已恢复 ]
+                </div>
+            `;
+        }
+        
+        // 2. 新闻渲染 (报纸风格)
+        else if (app === 'news') {
+            const lines = text.split('\n');
+            const headline = lines[0];
+            const body = lines.slice(1).join('<br>');
+            
+            html = `
+                <div class="news-card">
+                    <div class="news-headline">${headline}</div>
+                    <div class="news-body">${body}</div>
+                    <div style="text-align:right; margin-top:10px; font-size:0.8rem; color:var(--dim);">
+                        —— 雾川日报社 编辑部
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. 树洞渲染 (帖子风格)
+        else if (app === 'sns') {
+            // === 新增：旁白氛围层 (还原你的设定) ===
+            // 这里我们用一段斜体字作为开场，模拟玩家盯着屏幕的心理活动
+            html += `
+                <div style="
+                    padding: 5px 5px 20px 5px; 
+                    border-bottom: 1px dashed var(--dim); 
+                    margin-bottom: 20px; 
+                    color: #ccc; 
+                    font-family: var(--font-read); 
+                    font-size: 1.15rem; 
+                    line-height: 1.8; 
+                    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+                ">
+                    你熟练地打开了电脑，在处理那封神秘邮件之前，你不自觉地点开了本地社交论坛<span style="color:var(--accent-glitch)">『雾语』</span>的匿名板块。屏幕的光映在你疲惫的脸上，几条刚刷出的动态引起了你的注意：
+                </div>
+            `;
+
+            const posts = text.split('|||');
+            posts.forEach(post => {
+                if(!post.trim()) return;
+                const userNames = ["匿名用户893", "绝望的打工人", "看见了眼睛", "市民K", "猫奴", "404_GUEST"];
+                const randomUser = userNames[Math.floor(Math.random() * userNames.length)];
+                const likes = Math.floor(Math.random() * 100);
+                
+                html += `
+                    <div class="sns-post">
+                        <div class="sns-user">@${randomUser}</div>
+                        <div class="sns-content">${post.trim()}</div>
+                        <div class="sns-actions">
+                            <span>❤️ ${likes}</span>
+                            <span>💬 ${Math.floor(likes/3)}</span>
+                            <span>🔗 分享</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 4. 短信渲染 (气泡风格 - 修复版)
+        else if (app === 'msg') {
+            // 兼容处理：如果AI没用|||分割，而是用了换行
+            let rawMsgs = text.split('|||');
+            if (rawMsgs.length === 1 && text.includes('\n')) {
+                rawMsgs = text.split('\n');
+            }
+
+            html = `<div class="sms-container">`;
+            
+            rawMsgs.forEach(msg => {
+                msg = msg.trim();
+                if(!msg) return;
+
+                // === 修改点2：正则过滤 ===
+                // 只有符合 [名字]:内容 格式的行才会被渲染
+                // 这样就能把 "你的手机响了..." 这种旁白过滤掉
+                const match = msg.match(/^\[(.*?)\]\s*[:：]\s*(.*)$/);
+
+                if (match) {
+                    const sender = match[1].trim();
+                    const body = match[2].trim();
+                    
+                    // 判断是否是危险信息
+                    const isUrgent = sender.includes("警告") || sender.includes("未知") || body.includes("死") || body.includes("跑") || body.includes("👁️");
+                    
+                    html += `
+                        <div class="sms-card ${isUrgent ? 'urgent' : ''}">
+                            <div class="sms-sender">
+                                <span>${sender}</span>
+                                <span class="sms-time">刚刚</span>
+                            </div>
+                            <div class="sms-body">${body}</div>
+                        </div>
+                    `;
+                }
+                // 如果不匹配正则（比如是旁白），直接丢弃，不执行任何操作
+            });
+            html += `</div>`;
+        }
+
+        contentDiv.innerHTML = html;
+    } else {
+        contentDiv.innerHTML = `<div style="text-align:center; color:var(--dim);">[ 连接超时 ]</div>`;
+    }
+}
+
+
+// --- 6. 地图逻辑 ---
+
+function showMap() {
+    const grid = document.getElementById('map-grid');
+    grid.innerHTML = '';
+    
+    gameState.unlockedLocations.forEach(loc => {
+        const node = document.createElement('div');
+        const isCurrent = loc.name === gameState.currentLocation;
+        node.className = `map-node ${isCurrent ? 'current' : ''} ${loc.locked ? 'locked' : ''}`;
+        
+        let tag = "";
+        if (loc.type === 'shop') tag = `<div class="map-tag">商店</div>`;
+        if (loc.type === 'heal') tag = `<div class="map-tag">治疗</div>`;
+        if (loc.type === 'danger') tag = `<div class="map-tag" style="color:red; border-color:red;">危险</div>`;
+
+        node.innerHTML = `${loc.name} ${isCurrent ? "<br>(当前)" : ""} ${tag}`;
+        
+        if (!isCurrent && !loc.locked) {
+            node.onclick = () => {
+                hideOverlay('map-layer');
+                handleScene('move', loc.name);
+            };
+        }
+        grid.appendChild(node);
+    });
+
+    document.getElementById('current-location-name').innerText = gameState.currentLocation;
+    document.getElementById('map-layer').style.display = 'flex';
+}
+
+// --- 7. AI 接口 ---
+
+async function callAI(userPrompt, isSystem = false) {
+    // 构建记忆文本
+    const activeQuests = gameState.quests.filter(q => q.active).map(q => q.text).join("; ");
+    const knownClues = gameState.clues.join("; ");
+    
+    // 构建谜团信息 (AI可见，玩家不可见)
+    let mysteryContext = "";
+    if (gameState.mystery.active) {
+        mysteryContext = `
+        [★ 当前核心谜团 (正在进行中)]
+        谜面: ${gameState.mystery.title}
+        真相(玩家未知): ${gameState.mystery.truth}
+        截止: Day ${gameState.mystery.deadlineDay} (今: Day ${gameState.day})
+        *指令*: 所有剧情必须暗示此真相。不要直接揭露，要通过线索引导。
+        `;
+    } else {
+        mysteryContext = `
+        [★ 当前无核心谜团]
+        *指令*: 玩家目前处于空窗期。如果玩家正在【查看电脑/手机】、【阅读报纸】、【探索新地点】或【与关键NPC对话】，你可以生成一个新的 mystery_setup 来开启新案件。
+        `;
+    }
+
+    const systemPrompt = `
+    你是一个名为“雾川异闻录”的文字冒险游戏KP（守密人）。
+    风格：现代都市怪谈, 日常生活模拟, 轻度克苏鲁。
+
+    [当前状态]
+    玩家：${gameState.player.name} (${gameState.player.job})
+    属性：PHY ${gameState.stats.phy}, DEX ${gameState.stats.dex}, INT ${gameState.stats.int}, CHA ${gameState.stats.cha}, MYS ${gameState.stats.mys}
+    状态：HP:${gameState.stats.hp}, SAN:${gameState.stats.san}, 金钱:${gameState.money}, 声望:${gameState.reputation}
+    时间：Day ${gameState.day} - ${TIME_PHASES[gameState.timePhase]}
+    地点：${gameState.currentLocation}
+    
+    [重要记忆]
+    任务：${activeQuests}
+    线索：${knownClues}
+    ${mysteryContext}
+    
+    [核心规则]
+    1. **强制检定**：涉及风险行为必须返回 "check" 字段。
+    2. **经营要素**：声望影响委托，完成委托给予金钱。
+    3. **地点移动**：移动时必须返回 "move_to"。
+    4. **回复格式**：必须是纯JSON。
+    
+    请严格返回JSON格式（示例）：
+    {
+        "description": "剧情文本...",
+        "choices": [
+            {"text": "选项A", "action": "...", "check": "INT"}, 
+            {"text": "选项B", "action": "..."}
+        ],
+        "event": "none" | "san_check",
+        "loot": [],
+        "unlock_location": "地点名",
+        "new_clue": "线索内容", 
+        "update_quest": "任务内容",
+        "move_to": "新地点",
+        "mystery_setup": { "title": "谜题名", "truth": "真相设定", "days_limit": 3 },
+        "mystery_result": { "success": true, "reason": "..." }
+    }
+    `;
+
+    const messages = [
+        { role: "system", content: systemPrompt },
+        ...(isSystem ? [] : gameState.history.slice(-4)),
+        { role: "user", content: userPrompt }
+    ];
+
+    try {
+        const res = await fetch(`${config.baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: config.model,
+                messages: messages,
+                response_format: { type: "json_object" }
+            })
+        });
+        const data = await res.json();
+        const content = data.choices[0].message.content;
+        if (!isSystem) gameState.history.push({ role: "assistant", content: content });
+        
+        let jsonStr = content.replace(/```json/g, '').replace(/```/g, '');
+        return JSON.parse(jsonStr);
+    } catch (e) { console.error(e); return null; }
+}
+
+// --- 辅助函数 ---
+function addToLog(text) {
+    gameState.log.push(text);
+    const logContent = document.getElementById('log-content');
+    const entry = document.createElement('div');
+    entry.style.marginBottom = "10px";
+    entry.style.borderBottom = "1px dashed #333";
+    entry.innerText = text;
+    logContent.appendChild(entry);
+}
+function showLog() { document.getElementById('log-layer').style.display = 'flex'; }
+function showStatus() { document.getElementById('status-layer').style.display = 'flex'; updateStatsUI(); }
+function hideOverlay(id) { document.getElementById(id).style.display = 'none'; }
+
+// --- 新增：手记逻辑 ---
+function showNote() {
+    const qList = document.getElementById('quest-list');
+    const cList = document.getElementById('clue-list');
+    
+    // 渲染任务
+    qList.innerHTML = '';
+    
+    // === 新增：核心谜团置顶显示 ===
+    if (gameState.mystery.active) {
+        const daysLeft = gameState.mystery.deadlineDay - gameState.day;
+        const mysteryDiv = document.createElement('div');
+        mysteryDiv.style.cssText = "background: rgba(255,0,0,0.1); border: 1px solid var(--accent-red); padding: 10px; margin-bottom: 15px; color: var(--accent-red);";
+        mysteryDiv.innerHTML = `
+            <div style="font-weight:bold; margin-bottom:5px;">⚠️ 核心谜团: ${gameState.mystery.title}</div>
+            <div style="font-size:0.9rem;">距离审判日还剩: <span style="font-size:1.2rem; font-weight:bold;">${daysLeft}</span> 天</div>
+            <div style="font-size:0.8rem; opacity:0.8;">(请在 Day ${gameState.mystery.deadlineDay} 睡前解决)</div>
+        `;
+        qList.appendChild(mysteryDiv);
+    }
+
+    const activeQuests = gameState.quests.filter(q => q.active && !q.id.startsWith('mystery_')); // 过滤掉自动生成的mystery任务，避免重复
+    if (activeQuests.length === 0 && !gameState.mystery.active) {
+        qList.innerHTML = '<div style="color:var(--dim)">暂无明确目标，请自由探索。</div>';
+    } else {
+        activeQuests.forEach(q => {
+            const div = document.createElement('div');
+            div.innerHTML = `➤ ${q.text}`;
+            div.style.marginBottom = "8px";
+            qList.appendChild(div);
+        });
+    }
+
+    // 渲染线索
+    if (gameState.clues.length > 0) {
+        cList.innerHTML = '';
+        gameState.clues.forEach(c => {
+            const div = document.createElement('div');
+            div.innerHTML = `• <span style="color:var(--fg)">${c}</span>`;
+            div.style.marginBottom = "5px";
+            div.style.borderBottom = "1px solid #222";
+            cList.appendChild(div);
+        });
+    }
+    
+    document.getElementById('note-layer').style.display = 'flex';
+}
+
+
 </script>
 </body>
 </html>
