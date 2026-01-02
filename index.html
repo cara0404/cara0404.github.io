@@ -1940,7 +1940,7 @@ function handleOfficeAction(type) {
         if (confirm("结束这一天并睡觉？(恢复HP/SAN)")) {
             handleScene('sleep');
         }
-}
+    }
     else if (type === 'computer') {
         // 如果当前没有谜团，电脑是获取新谜团的主要途径
         if (!gameState.mystery.active) {
@@ -1950,6 +1950,7 @@ function handleOfficeAction(type) {
             handleScene('check_email', '查询关于当前谜团的资料');
         }
     }
+}
 
 // --- 5. 物品栏逻辑 ---
 
