@@ -492,6 +492,9 @@
             <!-- 新增：读取存档按钮 -->
             <button class="pixel-btn" id="btn-continue" onclick="loadGame()" style="width: 100%; display: none; border-color: var(--accent-gold); color: var(--accent-gold); margin-bottom: 15px;">📂 读取存档 (CONTINUE)</button>
             
+            <!-- 新增：教程按钮 -->
+            <button class="pixel-btn" onclick="showTutorial()" style="width: 100%; color: var(--accent-glitch); border-color: var(--accent-glitch); margin-bottom: 15px;">📖 员工手册 / 玩法教程</button>
+
             <button class="pixel-btn" onclick="openSettings()" style="width: 100%">系统设置 / API</button>
             <button class="pixel-btn" id="btn-enter-town" onclick="goToCharCreation()" disabled style="width: 100%">进入公寓 (NEW GAME)</button>
             <div id="api-status-indicator" style="text-align: center; font-size: 0.9rem; color: var(--dim); margin-top: 10px;">[ ⚠️ 神经连接未就绪 ]</div>
@@ -598,6 +601,8 @@
                 </div>
             </div>
             <div style="display: flex; gap: 5px;">
+                <!-- 新增：顶部栏的教程按钮 -->
+                <button class="menu-btn" onclick="showTutorial()" style="color: var(--accent-glitch);">📖 HELP</button>
                 <button class="menu-btn" onclick="showNote()">📓 NOTE</button>
                 <button class="menu-btn" onclick="showPhone()">📱 PHONE</button>
                 <button class="menu-btn" onclick="showMap()">MAP</button>
@@ -609,6 +614,7 @@
         </div>
 
         <div class="visual-area" id="visual-area">
+
             <div class="scene-title" id="scene-title">404号事务所</div>
             <!-- 事务所专用按钮 -->
             <div id="office-hud" class="office-hud">
@@ -833,6 +839,65 @@
             <button class="pixel-btn" onclick="hideOverlay('log-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
         </div>
         <div id="log-content" class="overlay-content"></div>
+    </div>
+
+    <!-- 10. 教程/说明书层 (新增) -->
+    <div id="tutorial-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2>/// 404号员工手册 ///</h2>
+            <button class="pixel-btn" onclick="hideOverlay('tutorial-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+        </div>
+        <div class="overlay-content" style="font-family: var(--font-read); line-height: 1.8; color: #ccc;">
+            
+            <div style="border: 1px solid var(--accent-glitch); padding: 15px; margin-bottom: 20px; background: rgba(0,255,255,0.05);">
+                <h3 style="color: var(--accent-glitch); margin-top: 0;">01. 神经连接 (API设置)</h3>
+                <p>本游戏由AI驱动，必须连接“灵界信号”才能运行。</p>
+                <ul style="list-style: square; padding-left: 20px;">
+                    <li><strong>API Base URL:</strong> 接口地址。例如 OpenAI 官方为 <code>https://api.openai.com/v1</code>，第三方中转通常为 <code>https://api.xxx.com/v1</code> (注意末尾不要带斜杠)。</li>
+                    <li><strong>API Key:</strong> 你的密钥 (sk-...)。</li>
+                    <li><strong>Model:</strong> 推荐使用 <code>gpt-3.5-turbo</code> 或 <code>gpt-4o-mini</code> 以获得最佳速度与体验。</li>
+                    <li>点击 <strong>[⚡ 测试连接信号]</strong>，显示绿色成功后即可开始游戏。</li>
+                </ul>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: var(--accent-gold);">02. 生存法则</h3>
+                <p>你是一名居住在“雾川市”的调查员，经营着一家名为“404号”的事务所。</p>
+                <ul style="list-style: square; padding-left: 20px;">
+                    <li><strong>HP (生命):</strong> 归零则死亡（删档）。睡觉、吃外卖、去诊所可恢复。</li>
+                    <li><strong>SAN (理智):</strong> 接触诡异事物会扣除。过低时（&lt;30）会看到乱码、幻觉，甚至改变物品描述。</li>
+                    <li><strong>MYS (灵视):</strong> 你的核心属性。越高越容易发现隐藏线索，但也越容易掉SAN。</li>
+                    <li><strong>时间流逝:</strong> 每天分为上午、下午、黄昏、深夜。深夜外出极其危险。</li>
+                </ul>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: var(--accent-red);">03. 核心谜团与调查</h3>
+                <p>游戏中会随机触发<strong>[核心谜团]</strong>（如：午夜敲门声）。</p>
+                <ul style="list-style: square; padding-left: 20px;">
+                    <li><strong>截止日期:</strong> 每个谜团都有倒计时。必须在截止日睡觉前查清真相。</li>
+                    <li><strong>如何调查:</strong> 
+                        <br>- 使用事务所电脑查邮件。
+                        <br>- 外出探索相关地点。
+                        <br>- 在下方输入框输入<strong>自由行动</strong>（如：“仔细检查墙壁”、“询问关于敲门声的事”）。
+                    </li>
+                    <li><strong>结算:</strong> 截止日当晚会自动结算。成功则获得声望与金钱，失败将遭受永久诅咒。</li>
+                </ul>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #fff;">04. 常用工具</h3>
+                <ul style="list-style: square; padding-left: 20px;">
+                    <li><strong>📱 手机:</strong> 点外卖(回血)、看新闻(情报)、刷树洞(怪谈)。</li>
+                    <li><strong>📓 手记:</strong> 查看当前任务目标和已收集的线索。</li>
+                    <li><strong>🎲 检定:</strong> 当你试图进行危险动作（如撬锁、说服）时，会触发属性检定。</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; color: var(--dim); font-size: 0.9rem;">
+                —— 祝你好运，调查员。 ——
+            </div>
+        </div>
     </div>
 
 <script>
@@ -1078,23 +1143,37 @@ window.addEventListener('load', checkSaveFile);
 
 async function testConnection() {
     const msgEl = document.getElementById('test-msg');
+    
+    // === 优化：直接读取输入框里的最新值，不用非得先点保存 ===
+    const currentUrl = document.getElementById('api-url').value.replace(/\/$/, "");
+    const currentKey = document.getElementById('api-key').value.trim();
+    const currentModel = document.getElementById('api-model').value;
+
+    if (!currentKey) {
+        msgEl.innerText = "❌ 错误：请先填入 API Key"; 
+        msgEl.className = "status-msg error";
+        return;
+    }
+
     msgEl.innerText = "正在呼叫灵界信号..."; 
     msgEl.className = "status-msg";
     
     try {
-        const response = await fetch(`${config.baseUrl}/chat/completions`, {
+        const response = await fetch(`${currentUrl}/chat/completions`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
+            headers: { 'Authorization': `Bearer ${currentKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                model: config.model, 
+                model: currentModel, 
                 messages: [{ role: "user", content: "Say OK" }], 
                 max_tokens: 5 
             })
         });
         
         if (response.ok) {
-            msgEl.innerText = "连接成功！灵界信号稳定。"; 
+            msgEl.innerText = "✅ 连接成功！灵界信号稳定。"; 
             msgEl.className = "status-msg success";
+            // 测试成功顺便自动保存一下，省得忘了
+            saveSettings(); 
         } else { 
             // 尝试读取错误信息
             const errData = await response.json().catch(() => ({}));
@@ -1103,9 +1182,13 @@ async function testConnection() {
         }
     } catch (e) {
         console.error("API Error:", e);
-        let showMsg = "连接失败: " + e.message;
+        let showMsg = "❌ 连接失败: " + e.message;
         if (e.message.includes("Failed to fetch")) {
-            showMsg = "连接被阻断 (CORS或网络问题)。请检查代理或API地址。";
+            showMsg = "❌ 连接被阻断 (CORS或网络问题)，请检查代理地址。";
+        }
+        // 如果是 401，提示更明确一点
+        if (e.message.includes("401")) {
+            showMsg = "❌ 鉴权失败 (401)：API Key 无效或余额不足。";
         }
         msgEl.innerText = showMsg; 
         msgEl.className = "status-msg error";
@@ -2376,6 +2459,9 @@ function addToLog(text) {
 function showLog() { document.getElementById('log-layer').style.display = 'flex'; }
 function showStatus() { document.getElementById('status-layer').style.display = 'flex'; updateStatsUI(); }
 function hideOverlay(id) { document.getElementById(id).style.display = 'none'; }
+
+// 新增：显示教程
+function showTutorial() { document.getElementById('tutorial-layer').style.display = 'flex'; }
 
 // --- 新增：手记逻辑 ---
 function showNote() {
