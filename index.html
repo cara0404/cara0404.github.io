@@ -32,6 +32,8 @@
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
         body {
             margin: 0; padding: 0;
             background-color: var(--bg);
@@ -43,7 +45,39 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            font-size: 18px;
+            font-size: 18px; /* 电脑端默认字体 */
+        }
+
+        /* === 新增：游戏锁定状态 (禁止操作) === */
+        .game-locked {
+            pointer-events: none !important; /* 禁止点击 */
+            filter: grayscale(100%) brightness(0.5); /* 变灰变暗 */
+            cursor: not-allowed;
+            transition: all 0.3s;
+        }
+        /*哪怕锁定了，对话框依然可以点（为了加速文字）*/
+        .game-locked .dialogue-box {
+            pointer-events: auto !important; 
+            filter: none !important;
+            cursor: pointer;
+        }
+
+
+        /* === 手机端字体适配优化 === */
+        @media screen and (max-width: 768px) {
+            body {
+                font-size: 14px; /* 手机端缩小字体，看起来更精致 */
+            }
+            /* 手机端按钮文字也可以稍微小一点 */
+            .pixel-btn {
+                font-size: 1rem; 
+                padding: 8px 10px;
+            }
+            /* 手机端标题文字缩小 */
+            h1, h2 { font-size: 1.5rem; }
+            .logo-text { font-size: 2.5rem; }
+            /* 对话框文字大小调整 */
+            .text-content { font-size: 1.3rem !important; }
         }
 
 
@@ -343,19 +377,80 @@
         .key-item { border-color: #a0f; }
         .key-item .item-name { color: #a0f; }
 
-        /* 地图样式 */
-        .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        /* 地图样式 - 树状目录结构改造 */
+        .map-container {
+            display: flex; flex-direction: column; gap: 5px;
+            padding-left: 10px;
+        }
+
+        /* 树的分支容器 */
+        .map-branch {
+            position: relative;
+            margin-left: 20px;
+            border-left: 2px dashed var(--dim); /* 竖线 */
+        }
+
+        /* 节点本身 */
         .map-node {
-            border: 2px solid var(--dim); padding: 15px; text-align: center; cursor: pointer;
-            transition: all 0.3s; opacity: 0.7; position: relative;
+            position: relative;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border: 1px solid var(--dim);
+            background: rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+            font-family: var(--font-pixel);
         }
-        .map-node:hover { border-color: var(--fg); opacity: 1; background: rgba(255,255,255,0.1); }
-        .map-node.current { border-color: var(--accent-glitch); box-shadow: 0 0 10px var(--accent-glitch); opacity: 1; }
-        .map-node.locked { border-style: dashed; opacity: 0.3; cursor: not-allowed; }
-        .map-tag { 
-            position: absolute; top: -10px; right: -5px; background: #000; border: 1px solid var(--fg); 
-            font-size: 0.8rem; padding: 2px 5px; color: var(--accent-gold);
+
+        /* 根节点（一级地点）不需要左边距太大 */
+        .map-root > .map-node {
+            border: 2px solid var(--fg);
+            background: rgba(255,255,255,0.05);
+            margin-left: 0;
         }
+
+        /* 子节点的连接横线 ├── */
+        .map-branch > .map-node::before {
+            content: "";
+            position: absolute;
+            left: -22px; /* 线条向左伸出 */
+            top: 50%;
+            width: 20px;
+            height: 2px;
+            background: var(--dim);
+        }
+
+        /* 交互效果 */
+        .map-node:hover {
+            border-color: var(--accent-glitch);
+            color: var(--accent-glitch);
+            transform: translateX(5px);
+        }
+        
+        /* 当前所在地高亮 */
+        .map-node.current {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+            color: var(--accent-gold);
+        }
+        .map-node.current::after {
+            content: "📍"; margin-left: 10px;
+        }
+
+        .map-node.locked {
+            opacity: 0.5; cursor: not-allowed; border-style: dashed;
+        }
+
+        /* 标签微调 */
+        .map-tag {
+            font-size: 0.7rem; padding: 1px 4px; margin-left: 8px;
+            border: 1px solid currentColor; border-radius: 2px;
+        }
+        .tag-danger { color: #ff3333; border-color: #ff3333; }
+        .tag-shop { color: var(--accent-gold); border-color: var(--accent-gold); }
+        .tag-safe { color: #0f0; border-color: #0f0; }
+        .tag-new { color: var(--accent-glitch); border-color: var(--accent-glitch); animation: blink 1s infinite; }
 
         /* 手机界面样式 (美化版) */
         .app-grid {
@@ -397,6 +492,38 @@
         }
         .back-btn:hover { text-decoration: underline; }
         .app-title { font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; }
+
+        /* === 商店系统样式 (新增) === */
+        .shop-hud {
+            position: absolute; bottom: 15px; left: 15px; /* 放在左下角，与事务所按钮区分 */
+            display: none; gap: 10px;
+            z-index: 5;
+        }
+        .shop-hud.active { display: flex; }
+
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .shop-card {
+            border: 2px solid var(--dim); padding: 15px; 
+            background: rgba(0,0,0,0.6); position: relative;
+            transition: all 0.2s; display: flex; flex-direction: column;
+        }
+        .shop-card:hover { border-color: var(--accent-gold); background: rgba(255,215,0,0.05); transform: translateY(-2px); }
+        
+        .shop-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .shop-item-name { font-weight: bold; font-size: 1.2rem; color: #fff; }
+        .shop-item-price { color: var(--accent-gold); font-family: var(--font-pixel); font-size: 1.2rem; }
+        
+        .shop-item-desc { font-size: 0.9rem; color: #aaa; font-family: var(--font-read); flex: 1; margin-bottom: 15px; line-height: 1.4; }
+        
+        .shop-buy-btn {
+            background: transparent; border: 1px solid var(--accent-gold); color: var(--accent-gold);
+            padding: 8px; cursor: pointer; font-family: var(--font-pixel); text-transform: uppercase;
+            transition: 0.2s; width: 100%;
+        }
+        .shop-buy-btn:hover { background: var(--accent-gold); color: #000; font-weight: bold; }
+        .shop-buy-btn:disabled { border-color: var(--dim); color: var(--dim); cursor: not-allowed; background: transparent; }
+
+
 
         /* === APP 特定样式模板 (大字号舒适版) === */
         
@@ -462,12 +589,91 @@
         }
         .bio-text { font-size: 1rem; color: #aaa; margin-top: 10px; font-style: italic; }
 
+        /* === 11. 通用像素弹窗 (新增美化) === */
+        .pixel-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 60000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(2px);
+        }
+        .modal-box {
+            background: #000; border: 2px solid var(--fg);
+            padding: 5px; /* 双层边框间隔 */
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            max-width: 400px; width: 85%;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-inner { 
+            border: 1px solid var(--dim); padding: 25px; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .modal-text { 
+            font-family: var(--font-read); font-size: 1.3rem; 
+            margin-bottom: 30px; line-height: 1.6; color: #fff; 
+            text-align: center; text-shadow: 0 2px 0 #000;
+        }
+
+        /* === 新增：骰子大成功/大失败特效 === */
+        
+        /* 1. 大成功：金色传说 (保持不变) */
+        .dice-crit-success {
+            border-color: #ffd700 !important;
+            color: #ffd700 !important;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8), inset 0 0 20px rgba(255, 215, 0, 0.5) !important;
+            animation: pulse-gold 0.8s infinite alternate !important;
+            text-shadow: 0 0 10px #ffd700;
+            background: rgba(255, 215, 0, 0.1) !important;
+        }
+        @keyframes pulse-gold { from { transform: scale(1); box-shadow: 0 0 30px #ffd700; } to { transform: scale(1.1); box-shadow: 0 0 80px #ffd700; } }
+
+        /* 2. 普通失败：鲜红警告 (新增) */
+        .dice-fail {
+            border-color: #ff4444 !important;
+            color: #ff4444 !important;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3) !important;
+            animation: shake 0.5s !important;
+        }
+
+        /* 3. 大失败：故障崩溃红 (重做，冲击力MAX) */
+        .dice-crit-fail {
+            border-color: #ff0000 !important;
+            color: #fff !important; /*以此反衬红色背景*/
+            background: #cc0000 !important;
+            box-shadow: 0 0 0 5px #000, 0 0 60px rgba(255, 0, 0, 1) !important; /* 双层边框+红光 */
+            animation: glitch-violent 0.3s infinite !important;
+            text-shadow: 2px 0 #000, -2px 0 #000, 0 2px #000, 0 -2px #000; /* 黑色描边 */
+            transform: scale(1.1);
+        }
+
+        /* 故障动画：疯狂位移+形变 */
+        @keyframes glitch-violent {
+            0% { clip-path: inset(20% 0 80% 0); transform: translate(-2px, 2px) scale(1.1); }
+            20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -2px) scale(1.1); }
+            40% { clip-path: inset(40% 0 50% 0); transform: translate(-2px, 2px) rotate(2deg) scale(1.15); }
+            60% { clip-path: inset(80% 0 5% 0); transform: translate(2px, -2px) rotate(-2deg) scale(1.15); }
+            80% { clip-path: inset(10% 0 60% 0); transform: translate(1px, 2px) scale(1.1); }
+            100% { clip-path: inset(30% 0 30% 0); transform: translate(0) scale(1.1); }
+        }
+
+        /* 屏幕红色闪烁特效 */
+        .screen-flash-red {
+            animation: flash-red-anim 0.5s ease-out;
+            background: rgba(100, 0, 0, 0.5) !important; /* 瞬间变红背景 */
+        }
+        @keyframes flash-red-anim {
+            0% { background: rgba(255, 0, 0, 0.8); }
+            100% { background: rgba(0, 0, 0, 0.98); }
+        }
+
+
+
         /* === 动画 === */
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes shake { 0% { transform: translate(0, 0); } 2% { transform: translate(-1px, 1px); } 4% { transform: translate(1px, -1px); } 6% { transform: translate(0, 0); } 100% { transform: translate(0, 0); } }
         @keyframes glitch-anim { 0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 1px); } 5% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -1px); } 10% { clip-path: inset(40% 0 50% 0); transform: translate(-1px, 2px); } 15% { clip-path: inset(90% 0 5% 0); transform: translate(1px, -2px); } 20% { clip-path: inset(100% 0 0 0); transform: translate(0, 0); } 100% { clip-path: inset(100% 0 0 0); transform: translate(0, 0); } }
         .glitch-text { animation: glitch 0.3s infinite; }
         @keyframes glitch { 0% { transform: translate(0) } 20% { transform: translate(-2px, 2px) } 40% { transform: translate(-2px, -2px) } 60% { transform: translate(2px, 2px) } 80% { transform: translate(2px, -2px) } 100% { transform: translate(0) } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     </style>
 </head>
@@ -506,6 +712,17 @@
     <div id="settings-modal">
         <h2>/// 神经连接设置 ///</h2>
         <div style="max-width: 500px; width: 100%; margin: 0 auto;">
+            
+            <!-- 新增：朋友专属口令通道 (替换开始) -->
+            <div style="border: 1px solid var(--accent-glitch); padding: 15px; margin-bottom: 20px; background: rgba(0,255,255,0.05);">
+                <label style="color: var(--accent-glitch); font-weight: bold;">🔑 朋友专属通道 (输入口令)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" class="pixel-input" id="secret-code" placeholder="输入口令自动连接..." style="margin-bottom: 0;">
+                    <button class="pixel-btn" onclick="applySecretCode()" style="width: 100px; margin: 0; border-color: var(--accent-glitch); color: var(--accent-glitch);">🚀 启动</button>
+                </div>
+            </div>
+            <!-- 新增：朋友专属口令通道 (替换结束) -->
+
             <!-- 新增：存档管理区域 -->
             <div style="border: 1px dashed var(--dim); padding: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.05);">
                 <div style="color: var(--accent-gold); margin-bottom: 10px;">[ 记忆数据管理 ]</div>
@@ -614,14 +831,20 @@
         </div>
 
         <div class="visual-area" id="visual-area">
-
             <div class="scene-title" id="scene-title">404号事务所</div>
+            
             <!-- 事务所专用按钮 -->
             <div id="office-hud" class="office-hud">
                 <button class="pixel-btn" onclick="handleOfficeAction('computer')">💻 电脑终端</button>
                 <button class="pixel-btn" onclick="handleOfficeAction('sleep')">🛏️ 睡觉 (结算)</button>
             </div>
+
+            <!-- 商店专用按钮 (移到这里面来了！这样它就会显示在图片上，不会被下面的对话框挡住) -->
+            <div id="shop-hud" class="shop-hud">
+                <button class="pixel-btn" onclick="openShop()" style="border-color: var(--accent-gold); color: var(--accent-gold);">🛒 进入交易 (SHOP)</button>
+            </div>
         </div>
+
 
         <div class="dialogue-box" onclick="nextText()">
             <div class="speaker-name" id="speaker-name">???</div>
@@ -629,14 +852,20 @@
             <div class="click-indicator" id="click-arrow">▼</div>
         </div>
 
-        <!-- 自由行动输入栏 -->
+        <!-- 自由行动输入栏 (升级版) -->
         <div id="free-action-bar" style="
             position: absolute; bottom: 0; left: 0; width: 100%; 
             background: #000; border-top: var(--border); padding: 10px;
-            display: flex; gap: 10px; z-index: 60;
+            display: flex; gap: 8px; z-index: 60; align-items: stretch;
         ">
-            <input type="text" id="free-input" class="pixel-input" placeholder="输入你想做的事... (例: 仔细观察墙壁)" style="margin: 0; font-size: 0.9rem;">
-            <button class="pixel-btn" onclick="submitFreeAction()" style="margin: 0; width: 80px;">执行</button>
+            <!-- 新增：探索按钮 -->
+            <button class="pixel-btn" onclick="triggerExplore()" style="
+                margin: 0; width: 50px; border-color: var(--accent-gold); color: var(--accent-gold); font-size: 1.2rem;
+            ">🔍</button>
+            
+            <input type="text" id="free-input" class="pixel-input" placeholder="输入行动..." style="margin: 0; font-size: 0.9rem; flex: 1; min-width: 0;">
+            
+            <button class="pixel-btn" onclick="submitFreeAction()" style="margin: 0; width: 70px;">执行</button>
         </div>
 
         <!-- 选项层：注意 bottom: 60px 是为了避开上面的输入框 -->
@@ -759,6 +988,29 @@
         </div>
     </div>
 
+    <!-- 7. 商店交易层 (新增) -->
+    <div id="shop-layer" class="overlay-layer">
+        <div class="overlay-header">
+            <h2 id="shop-title">/// 交易终端 ///</h2>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <span style="color:var(--accent-gold); font-family:var(--font-pixel);">
+                    持有: ¥<span id="shop-player-money">0</span>
+                </span>
+                <button class="pixel-btn" onclick="hideOverlay('shop-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
+            </div>
+        </div>
+        <div class="overlay-content">
+            <div id="shop-loading" class="loading-text" style="display:none; margin-top:50px;">
+                正在获取商品列表...<br>CONNECTING TO MARKET...
+            </div>
+            <div id="shop-list" class="shop-grid">
+                <!-- 商品将由AI生成并填充 -->
+            </div>
+        </div>
+    </div>
+
+
+
     <!-- 7.5 手机终端 (美化版) -->
     <div id="phone-layer" class="overlay-layer">
         <div class="overlay-header">
@@ -839,7 +1091,19 @@
             <button class="pixel-btn" onclick="hideOverlay('log-layer')" style="padding: 5px 10px; font-size: 1rem;">X</button>
         </div>
         <div id="log-content" class="overlay-content"></div>
+</div>
+    <!-- 11. 通用弹窗层 (替代丑陋的alert) -->
+    <div id="pixel-modal" class="pixel-modal">
+        <div class="modal-box">
+            <div class="modal-inner">
+                <div id="modal-text" class="modal-text">系统消息</div>
+                <button class="pixel-btn" onclick="closePixelMsg()" style="width: 100%; border-color: var(--accent-glitch); color: var(--accent-glitch); font-weight:bold;">确 定</button>
+            </div>
+        </div>
     </div>
+
+
+
 
     <!-- 10. 教程/说明书层 (新增) -->
     <div id="tutorial-layer" class="overlay-layer">
@@ -921,22 +1185,24 @@ let gameState = {
     reputation: 0, // 声望值
     currentLocation: "404号事务所",
     player: { name: "", job: "", extra: "", desc: "" },
+    // === 修改：初始属性改为 D100 标准 (平均50) ===
     stats: { 
         hp: 100, maxHp: 100, 
         san: 60, maxSan: 60,
-        phy: 10, dex: 10, int: 10, cha: 10, mys: 10 
+        phy: 50, dex: 50, int: 50, cha: 50, mys: 50 
     },
     // === 新增：核心谜团系统 ===
     mystery: {
         active: false,      // 是否有正在进行的谜团
-        title: "",          // 谜面 (玩家可见，如"午夜敲门声")
-        truth: "",          // 谜底 (玩家不可见，AI可见，用于引导剧情)
-        deadlineDay: 0,     // 截止日期 (Day X 晚上结算)
-        status: "pending"   // pending, solved, failed
+        title: "",          // 谜面
+        truth: "",          // 谜底 (AI已知)
+        deadlineDay: 0,     // 截止日期
+        status: "pending",   // pending, solved, failed
+        tempQuizData: null   // 临时存储晚上的题目
     },
     inventory: [],
     quests: [
-        { id: "main", text: "入住404号事务所，熟悉环境。", active: true } 
+        { id: "main", text: "处理邻居王阿姨的委托：寻找走失的波斯猫。", active: true } 
     ],
     clues: [], 
     unlockedLocations: [
@@ -952,32 +1218,74 @@ let gameState = {
     }
 };
 
-// === 新增：场景背景图配置 ===
-const SCENE_IMAGES = {
-    // 格式： "关键词": "图片链接"
-    "事务所": "https://i.postimg.cc/fRb8s2PP/shi-wu-suo1.png",
-    "医院": "https://media.istockphoto.com/id/1352178903/vector/hospital-building-pixel-art-vector-illustration.jpg?s=612x612&w=0&k=20&c=gK4sF4w0XyM-J9vW_D2yv9xK_E8hZ_u_X_y_Z_z_0=", // 示例占位图，你可以换成你的
-    "便利店": "", // 暂时留空，显示默认黑色
-    "街道": "" 
+// === 新增：场景背景图配置 (支持白天/黑夜切换) ===
+const SCENE_CONFIG = {
+    // 格式： "关键词": { day: "白天图", night: "晚上图" }
+    
+    // 1. 事务所 (玩家的家)
+    "事务所": {
+        day: "https://i.postimg.cc/qvJcFkDn/sheng-cheng-te-ding-feng-ge-tu-pian.png",
+        night: "https://i.postimg.cc/9FpZZ6Xz/shi-wu-suo-ye-wan.png"
+    },
+    "404": { // 防止AI有时候只说“404号”
+        day: "https://i.postimg.cc/qvJcFkDn/sheng-cheng-te-ding-feng-ge-tu-pian.png",
+        night: "https://i.postimg.cc/9FpZZ6Xz/shi-wu-suo-ye-wan.png"
+    },
+
+    // 2. 便利店/商店
+    "便利店": {
+        day: "https://i.postimg.cc/44vJ3ZPr/bian-li-dian.png",
+        night: "https://i.postimg.cc/HWzfKLB3/bian-li-dian-ye-wan.png"
+    },
+    "商店": { // 兼容叫法
+        day: "https://i.postimg.cc/44vJ3ZPr/bian-li-dian.png",
+        night: "https://i.postimg.cc/HWzfKLB3/bian-li-dian-ye-wan.png"
+    },
+
+    // 3. 医院/诊所
+    "医院": { 
+        day: "https://i.postimg.cc/0yvxR47x/yi-yuan-zhen-shi.png",
+        night: "https://i.postimg.cc/qvr0VF2J/yi-yuan-zhen-shi-ye-wan.png"
+    },
+    "诊所": { 
+        day: "https://i.postimg.cc/0yvxR47x/yi-yuan-zhen-shi.png",
+        night: "https://i.postimg.cc/qvr0VF2J/yi-yuan-zhen-shi-ye-wan.png"
+    }
+};
+
+// 默认背景（街道/街区）- 当识别不到具体地点时使用
+const DEFAULT_SCENE = {
+    day: "https://i.postimg.cc/3wJk7N2v/jie-dao-bai-tian.png",
+    night: "https://i.postimg.cc/TYgLJZRj/jie-dao-ye-wan.png"
 };
 
 // 切换背景图的函数
 function updateSceneBackground(locationName) {
     const visualArea = document.getElementById('visual-area');
-    let bgUrl = ""; // 默认为空（黑色背景）
+    
+    // 1. 判断是白天还是晚上
+    // 游戏逻辑：0=上午, 1=下午, 2=黄昏, 3=深夜
+    // 设定：黄昏(2)和深夜(3)使用“夜晚图”，上午(0)和下午(1)使用“白天图”
+    const isNight = gameState.timePhase >= 2; 
 
-    // 遍历配置，只要地点名字包含关键词（比如"第一人民医院"包含"医院"），就应用图片
-    for (const [key, url] of Object.entries(SCENE_IMAGES)) {
-        if (locationName.includes(key) && url) {
-            bgUrl = url;
+    // 2. 先设置默认图片（街道）
+    let bgUrl = isNight ? DEFAULT_SCENE.night : DEFAULT_SCENE.day;
+
+    // 3. 遍历配置，寻找匹配的关键词
+    // 只要地点名字包含关键词（比如"第一人民医院"包含"医院"），就应用特定图片
+    for (const [key, urls] of Object.entries(SCENE_CONFIG)) {
+        if (locationName.includes(key)) {
+            bgUrl = isNight ? urls.night : urls.day;
             break; // 找到匹配的就停止
         }
     }
 
-    if (bgUrl) {
+    // 4. 应用背景
+    // 为了防止图片闪烁，只有当URL真正改变时才设置
+    // 这里做了一个简单的正则处理去掉url("")的包装来对比
+    const currentBg = visualArea.style.backgroundImage.slice(5, -2); // 去掉 url(" ... ")
+    if (currentBg !== bgUrl) {
         visualArea.style.backgroundImage = `url('${bgUrl}')`;
-    } else {
-        visualArea.style.backgroundImage = 'none'; // 没有匹配图时恢复默认
     }
 }
 
@@ -988,19 +1296,66 @@ let avgState = {
     typingTimer: null,
     charIndex: 0,
     pendingChoices: [],
-    isWaitingForAI: false,
+    isWaitingForAI: false, // 正在等AI请求
     isReadyToPlay: false,
     tempData: null
 };
 
+// === 修改：全局输入锁定检查 ===
+function checkInputLock() {
+    // 1. 正在等AI请求 -> 锁
+    // 2. 正在打字机打字 -> 锁
+    // 3. 队列里还有没播放完的段落 -> 锁 (这就是你要的功能！)
+    // 4. 有待显示的选项还没显示出来 -> 锁 (防止最后一句刚播完还没出选项时玩家乱点)
+    if (avgState.isWaitingForAI || 
+        avgState.isTyping || 
+        avgState.textQueue.length > 0 || 
+        (avgState.pendingChoices && avgState.pendingChoices.length > 0 && !document.getElementById('choices-layer').classList.contains('active'))) {
+        return true; 
+    }
+    return false; // 只有完全没事了，才解锁
+}
+
+// === 新增：更新界面锁定状态 ===
+function updateLockVisuals() {
+    const isLocked = checkInputLock();
+    const gameScreen = document.getElementById('game-screen');
+    
+    // 我们锁定除了对话框以外的所有东西
+    const topBar = document.querySelector('.top-bar');
+    const bottomBar = document.getElementById('free-action-bar');
+    const choices = document.getElementById('choices-layer');
+    const officeHud = document.getElementById('office-hud');
+    const shopHud = document.getElementById('shop-hud');
+
+    if (isLocked) {
+        if(topBar) topBar.classList.add('game-locked');
+        if(bottomBar) bottomBar.classList.add('game-locked');
+        if(choices) choices.classList.add('game-locked');
+        if(officeHud) officeHud.classList.add('game-locked');
+        if(shopHud) shopHud.classList.add('game-locked');
+        // 显示一个小提示
+        document.getElementById('click-arrow').style.display = 'none';
+    } else {
+        if(topBar) topBar.classList.remove('game-locked');
+        if(bottomBar) bottomBar.classList.remove('game-locked');
+        if(choices) choices.classList.remove('game-locked');
+        if(officeHud) officeHud.classList.remove('game-locked');
+        if(shopHud) shopHud.classList.remove('game-locked');
+        // 恢复箭头
+        document.getElementById('click-arrow').style.display = 'block';
+    }
+};
+
 // --- 0. 开场动画逻辑 ---
 const slides = [
-    { text: "欢迎来到 <span class='highlight-neon' style='font-size: 2.2rem'>雾川市</span>。", style: "text-align: center;" },
-    { text: "这里的房租很便宜，雨水很充沛，霓虹灯很亮。\n亮到足以掩盖巷子里那些……\n<br><span class='highlight-scary' style='font-size: 2rem'>蠕动的阴影</span>。", style: "text-align: left;" },
-    { text: "你接手了 <span style='border-bottom: 2px solid white'>404号事务所</span>。\n这既是你的新家，也是你窥探“里世界”的窗口。", style: "text-align: left;" },
-    { text: "请记住三条生存法则：\n\n1. 白天是安全的，尽情享受阳光。\n2. 夜晚属于“它们”，不要轻易出门。\n3. 保持理智，或者……<span style='font-style:italic'>享受疯狂</span>。", style: "text-align: left;" },
-    { text: "准备好开始你的“正常”生活了吗？", style: "text-align: center; font-size: 1.5rem;" }
+    { text: "你好，欢迎来到 <span class='highlight-neon' style='font-size: 2.2rem'>雾川市·老城区</span>。", style: "text-align: center;" },
+    { text: "这里的房租便宜得感人，楼下的便利店永远在打折，\n空气里常年飘着一股……\n<br><span class='highlight-scary' style='font-size: 2rem'>红烧牛肉面和下水道混合的味道</span>。", style: "text-align: left;" },
+    { text: "你经营着 <span style='border-bottom: 2px solid white'>404号事务所</span>。\n作为一名总是入不敷出的私家侦探，你每天的烦恼不是拯救世界，而是下个月的水电费。", style: "text-align: left;" },
+    { text: "偶尔，确实会有一些“奇怪”的邻居找上门……\n\n1. 楼上没住人，但半夜总有弹珠声。\n2. 快递员有时候没有脸。\n3. <span style='font-style:italic'>无论看到什么，只要不加钱，就当没看见。</span>", style: "text-align: left;" },
+    { text: "准备好开始你鸡飞狗跳的侦探生活了吗？", style: "text-align: center; font-size: 1.5rem;" }
 ];
+
 
 let currentSlide = 0;
 const introLayer = document.getElementById('intro-layer');
@@ -1038,6 +1393,62 @@ document.getElementById('api-url').value = config.baseUrl;
 document.getElementById('api-key').value = config.apiKey;
 document.getElementById('api-model').value = config.model;
 checkApiStatus();
+
+// === 新增：口令自动配置功能 (美化升级版) ===
+async function applySecretCode() {
+    const codeInput = document.getElementById('secret-code');
+    const code = codeInput.value.trim();
+
+    // 这里设定你的口令是 "404VIP"
+    if (code === "404VIP") {
+        // 1. 自动填入你的配置
+        document.getElementById('api-url').value = "https://gcli.ggchan.dev/v1";
+        document.getElementById('api-key').value = "gg-gcli-sevpzHoR8GJmy6nm9vpNb-1lRLCbl0-76KReiz3Ubh0";
+        
+        // 自动填入模型，防止它是下拉框导致赋值失败
+        const modelInput = document.getElementById('api-model');
+        if (modelInput.tagName === 'SELECT') {
+            const tempInput = document.createElement('input');
+            tempInput.type = 'text';
+            tempInput.className = 'pixel-input';
+            tempInput.id = 'api-model';
+            modelInput.parentNode.replaceChild(tempInput, modelInput);
+        }
+        document.getElementById('api-model').value = "gemini-3-flash-preview";
+
+        // 2. 保存
+        saveSettings(); 
+        
+        // 3. 视觉反馈：使用漂亮弹窗，而不是丑陋的alert
+        // 先显示第一阶段：验证成功
+        showPixelMsg("🔓 身份验证成功！<br><span style='color:var(--dim); font-size:0.9rem'>正在接入 GCLI-NODE...</span>");
+
+        // 4. 稍微停顿1秒，让玩家看清提示，然后开始测试连接
+        setTimeout(async () => {
+            await testConnection(); // 执行连接测试
+            
+            // 获取测试结果（就是设置面板上那个小字的元素）
+            const resultMsg = document.getElementById('test-msg');
+            
+            // 如果测试成功（根据文字颜色判断，success类是绿色的）
+            if (resultMsg.classList.contains('success')) {
+                // 更新弹窗为最终成功状态
+                showPixelMsg("✅ 神经连接建立完毕！<br><span style='color:var(--accent-glitch); font-weight:bold;'>信号同步率 100%</span><br><span style='font-size:0.8rem; color:#aaa'>(请点击确定或背景关闭)</span>");
+            } else {
+                // 如果连接失败，显示错误信息
+                showPixelMsg("⚠️ 验证通过但连接失败<br><span style='font-size:0.8rem; color:var(--accent-red)'>" + resultMsg.innerText + "</span>");
+            }
+        }, 1200); // 1.2秒延迟，营造一种正在计算的感觉
+
+        // 5. 清空口令框
+        codeInput.value = "";
+        
+    } else {
+        // 错误提示也改成美化版
+        showPixelMsg("❌ 口令错误：拒绝访问。<br><span style='color:var(--accent-red); font-size:0.8rem'>IP地址已记录...</span>");
+        codeInput.value = "";
+    }
+}
 
 function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
 function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
@@ -1292,15 +1703,50 @@ async function fetchModels() {
 }
 
 // === 新增：随机人设库 ===
-const R_NAMES = ["林恩", "K", "莫里斯", "陈", "艾达", "阿黑", "鸦", "白", "42号", "瑞恩"];
-const R_JOBS = ["私家侦探", "黑客", "医生", "古董商", "落魄记者", "除灵师", "调酒师", "赏金猎人"];
-const R_EXTRAS = ["总是听到幻听", "欠了高利贷", "拥有阴阳眼", "失忆了", "右臂残缺", "重度失眠", "能看见死亡倒计时"];
+const R_NAMES = ["阿强", "Lisa", "老王", "K先生", "陈某", "小美", "丧彪", "无名氏", "周周", "阿豪"];
+const R_JOBS = [
+    "被裁员的程序员", 
+    "灵异大巴司机", 
+    "三流小说家", 
+    "兼职外卖员的道士", 
+    "过气网红", 
+    "拥有黑客技术的宅男", 
+    "深夜便利店店员", 
+    "专门找猫的侦探"
+];
+const R_EXTRAS = [
+    "穷神附体（真的没钱）", 
+    "重度拖延症", 
+    "只喝冰美式", 
+    "能看见鬼但假装看不见", 
+    "猫毛过敏", 
+    "夜猫子", 
+    "社恐十级", 
+    "运气总是差一点点"
+];
 
 function randomizeInputs() {
     document.getElementById('char-name').value = R_NAMES[Math.floor(Math.random() * R_NAMES.length)];
     document.getElementById('char-job').value = R_JOBS[Math.floor(Math.random() * R_JOBS.length)];
     document.getElementById('char-extra').value = R_EXTRAS[Math.floor(Math.random() * R_EXTRAS.length)];
 }
+
+// === 新增：一键探索功能 ===
+function triggerExplore() {
+    if (avgState.isWaitingForAI) return showPixelMsg("正在连接灵界，请稍候...");
+    
+    // 隐藏选项层，防止冲突
+    document.getElementById('choices-layer').classList.remove('active');
+    
+    // 播放一个简单的点击反馈动画（可选）
+    const btn = event.currentTarget;
+    btn.style.transform = "scale(0.9)";
+    setTimeout(() => btn.style.transform = "scale(1)", 100);
+
+    // 直接调用场景处理，传入特殊动作 'explore_current_location'
+    handleScene('explore_current_location');
+}
+
 
 // === 新增：自由行动处理 ===
 function submitFreeAction() {
@@ -1342,28 +1788,39 @@ async function generatePersona() {
     document.getElementById('persona-loading').style.display = 'block';
     document.getElementById('persona-result').style.display = 'none';
 
+    // === 修改：提示词要求 D100 数值体系 ===
     const prompt = `
-    玩家正在创建角色。
-    姓名：${name}
-    职业：${job}
-    额外特质/秘密：${extra || "无"}
+    玩家正在创建角色，游戏风格为：现代都市怪谈 + 黑色幽默 + 贫穷模拟器。
     
-    请生成一个详细、有深度的轻度恐怖日常风格人物侧写。
-    并根据职业和特质，生成以下属性数值（范围1-20，普通人平均10）：
-    - PHY (体魄): 生命、战斗
-    - DEX (灵巧): 敏捷、潜行
-    - INT (学识): 知识、技术
-    - CHA (魅力): 社交、欺诈
-    - MYS (灵视): 核心属性，感知超自然的能力
+    姓名：${name}
+    前职业：${job}
+    额外特质/怪癖：${extra || "平平无奇"}
+    
+    请生成一个**现代感强、带点自嘲或吐槽风格**的人物侧写。
+    
+    重点描述：
+    1. 你的经济状况（通常不太好）。
+    2. 你为什么转职住在404号这种破廉租公寓里当私家侦探。
+    3. 你对待“灵异事件”的态度。
+    
+    【重要禁令】：
+    描述中**绝对不要**包含具体的 HP、SAN、金钱 等数值。
+    
+    并根据职业和特质，生成以下属性数值（**采用 D100 规则，范围 1-99，普通人平均 50**）：
+    - PHY (体魄): 抗揍能力 (建议 40-80)
+    - DEX (灵巧): 跑路速度 (建议 40-80)
+    - INT (学识): 知识水平 (建议 40-90)
+    - CHA (魅力): 颜值口才 (建议 30-80)
+    - MYS (灵视): 灵感/通灵 (建议 20-70)
     
     请严格返回JSON格式：
     {
-        "description": "一段第二人称的描述（约120-150字），详细说明你的过去、现在的状态以及为何来到这里，氛围要压抑且充满细节。",
-        "phy": 10,
-        "dex": 10,
-        "int": 10,
-        "cha": 10,
-        "mys": 10
+        "description": "一段第二人称的描述...",
+        "phy": 50,
+        "dex": 50,
+        "int": 50,
+        "cha": 50,
+        "mys": 50
     }
     `;
 
@@ -1385,8 +1842,11 @@ async function generatePersona() {
         document.getElementById('p-cha').innerText = result.cha;
         document.getElementById('p-mys').innerText = result.mys;
 
-        const hp = 50 + (result.phy * 5);
-        const san = 20 + (result.mys * 5);
+        // === 修改：HP 和 SAN 的计算公式适配 D100 ===
+        // HP = (体魄 + 80) / 2，这样大部分人在 60-80 血之间，比较合理
+        const hp = Math.floor((result.phy + 80) / 2);
+        // SAN = 灵视 (MYS) 也就是意志力
+        const san = result.mys;
 
         document.getElementById('p-hp').innerText = hp;
         document.getElementById('p-san').innerText = san;
@@ -1399,8 +1859,8 @@ async function generatePersona() {
         
         gameState.inventory.push({
             id: "dice", name: "命运骰子", type: "key", count: 1,
-            desc: "一颗磨损的六面骰子，似乎总能投出你想要的点数。",
-            desc_insane: "它在看着你。上面的点数变成了眼睛。",
+            desc: "一颗磨损的百面骰子(D100)，每一次滚动都是命运的低语。",
+            desc_insane: "它在看着你。上面的数字在不断变化，仿佛在倒计时。",
             effect: "none"
         });
 
@@ -1433,10 +1893,27 @@ function updateStatsUI() {
     
     // 事务所HUD控制
     const officeHud = document.getElementById('office-hud');
-    if (gameState.currentLocation === "404号事务所") {
+    // 修改：只要名字里包含 404 或者 事务所，就显示事务所按钮
+    if (gameState.currentLocation && gameState.currentLocation.match(/事务所|404|Home/)) {
         officeHud.classList.add('active');
     } else {
         officeHud.classList.remove('active');
+    }
+    
+    // 商店HUD控制 (新增)
+    const shopHud = document.getElementById('shop-hud');
+    
+    // === 暴力修复核心 ===
+    // 不再去查那个复杂的表格了，直接看地点名字！
+    // 只要地点名字里包含：便利店、超市、商店... 且不包含“仓库”、“后巷”等非营业区域，才显示购买按钮
+    const locName = gameState.currentLocation;
+    const isShoppingArea = /便利店|超市|商店|诊所|药店|商场|黑市|Shop|Store|Mart|Clinic/i.test(locName);
+    const isNotHiddenArea = !/仓库|后巷|下水道|暗室|Bedroom|Storage/i.test(locName); // 排除掉非营业区域
+
+    if (isShoppingArea && isNotHiddenArea) {
+        shopHud.classList.add('active');
+    } else {
+        shopHud.classList.remove('active');
     }
 
     // 更新状态面板
@@ -1456,31 +1933,51 @@ function updateStatsUI() {
     else document.body.classList.remove('glitch-text');
 }
 
-// 处理 AI 返回的数据
 function processSceneData(data) {
     // === 优先处理地点变更 ===
-    if (data.move_to) {
+    if (data.move_to && data.move_to.toLowerCase() !== "none" && data.move_to.toLowerCase() !== "null" && data.move_to.trim() !== "") {
+        if (gameState.currentLocation !== data.move_to) {
+            currentShopItems = []; 
+        }
         gameState.currentLocation = data.move_to;
     }
 
-    // === 新增：处理核心谜团生成 ===
-    // 逻辑优化：只有当当前没有谜团，或者新谜团与当前不同时才触发，防止重复显示
+    // === 新增：优先处理时间变更 (听从AI的直接指挥) ===
+    // 你的思路：直接读取 AI 发回的 change_time 字段，准确无误！
+    if (typeof data.change_time !== 'undefined' && data.change_time !== null) {
+        let newTime = parseInt(data.change_time);
+        if (newTime >= 0 && newTime <= 3) {
+            gameState.timePhase = newTime;
+            updateStatsUI(); // 刷新右上角图标
+            updateSceneBackground(gameState.currentLocation); // 刷新背景图(白天/黑夜)
+        }
+    }
+
+    // === 处理睡前 Quiz ===
+    if (data.quiz) {
+        gameState.mystery.tempQuizData = data.quiz;
+        const options = data.quiz.options.map((opt, index) => ({
+            text: opt,
+            action: "quiz_answer", 
+            rawIndex: index
+        }));
+        data.choices = options;
+    }
+
+    // === 处理核心谜团生成 ===
     if (data.mystery_setup && (!gameState.mystery.active || gameState.mystery.title !== data.mystery_setup.title)) {
         gameState.mystery.active = true;
         gameState.mystery.title = data.mystery_setup.title;
         gameState.mystery.truth = data.mystery_setup.truth;
-        // 截止日期 = 当前天数 + 偏移量
         gameState.mystery.deadlineDay = gameState.day + (data.mystery_setup.days_limit || 3);
         gameState.mystery.status = "pending";
         
-        // 强制在描述中追加醒目的 UI 提示 (使用 div 块级元素防止混排)
         data.description += `\n\n<div style="border:1px solid var(--accent-red); background:rgba(50,0,0,0.3); padding:15px; margin:15px 0; text-align:center; animation: blink 2s infinite;">
             <div style="color:var(--accent-red); font-weight:bold; font-size:1.2rem; letter-spacing:2px;">⚠️ 触发核心谜团</div>
             <div style="color:#fff; font-size:1.1rem; margin:5px 0;">『 ${gameState.mystery.title} 』</div>
             <div style="color:#aaa; font-size:0.9rem;">必须在 Day ${gameState.mystery.deadlineDay} 结束前查清真相</div>
         </div>`;
         
-        // 自动添加任务
         gameState.quests.push({ 
             id: 'mystery_'+Date.now(), 
             text: `[核心] 解决谜团：${gameState.mystery.title} (截止: Day ${gameState.mystery.deadlineDay})`, 
@@ -1488,125 +1985,202 @@ function processSceneData(data) {
         });
     }
 
-    // === 新增：处理谜团结算结果 ===
+    // === 处理谜团结算结果 ===
     if (data.mystery_result) {
-        gameState.mystery.active = false; // 关闭当前谜团
-        gameState.mystery.truth = "";     // 清空真相，防止干扰后续
+        gameState.mystery.active = false; 
+        gameState.mystery.truth = "";    
         
         if (data.mystery_result.success) {
-            // 成功奖励
             gameState.reputation += 20;
             gameState.money += 1000;
             gameState.stats.san = Math.min(gameState.stats.maxSan, gameState.stats.san + 20);
             data.description += `\n<span style="color:#0f0; font-size:1.2rem;">[ ✅ 谜题破解成功！ ]</span>\n获得：声望+20, 资金+1000, SAN+20`;
         } else {
-            // 失败惩罚
             gameState.reputation -= 10;
             gameState.stats.san -= 20;
-            gameState.stats.maxHp -= 10; // 永久扣血上限
+            gameState.stats.maxHp -= 10;
             data.description += `\n<span style="color:#f00; font-size:1.2rem;">[ ❌ 谜题破解失败... ]</span>\n惩罚：声望-10, SAN-20, 生命上限永久-10`;
         }
     }
 
-    // === 修复：每次剧情更新时，强制刷新UI状态 ===
     updateStatsUI(); 
-
     document.getElementById('scene-title').innerText = gameState.currentLocation;
-    
-    // === 根据地点名字自动切换背景图 ===
     updateSceneBackground(gameState.currentLocation);
 
-    // 1. 处理 SAN Check
+    // === ★★★ 核心修复：属性数值抓取 (无反引号安全版) ★★★ ===
+    const regexStats = /(HP|SAN|REP|PHY|DEX|INT|CHA|MYS|Life|理智|生命|声望|体魄|灵巧|学识|魅力|灵视)[ :]?([+\-]\d+)/gi;
+    let matchStat;
+    let statChanged = false;
+    let hpDamageTaken = false;
+    
+    while ((matchStat = regexStats.exec(data.description)) !== null) {
+        let type = matchStat[1].toUpperCase();
+        let val = parseInt(matchStat[2]); 
+        
+        if (type.match(/HP|LIFE|生命/)) {
+            gameState.stats.hp += val;
+            if (gameState.stats.hp > gameState.stats.maxHp) gameState.stats.hp = gameState.stats.maxHp;
+            if (gameState.stats.hp < 0) gameState.stats.hp = 0;
+            if (val < 0) hpDamageTaken = true;
+            statChanged = true;
+        }
+        else if (type.match(/SAN|理智/)) {
+            gameState.stats.san += val;
+            if (gameState.stats.san > gameState.stats.maxSan) gameState.stats.san = gameState.stats.maxSan;
+            if (gameState.stats.san < 0) gameState.stats.san = 0;
+            statChanged = true;
+        }
+        else if (type.match(/REP|声望/)) {
+            gameState.reputation += val;
+            statChanged = true;
+        }
+        // 强化属性
+        else if (type.match(/PHY|体魄/)) { gameState.stats.phy += val; statChanged = true; }
+        else if (type.match(/DEX|灵巧/)) { gameState.stats.dex += val; statChanged = true; }
+        else if (type.match(/INT|学识/)) { gameState.stats.int += val; statChanged = true; }
+        else if (type.match(/CHA|魅力/)) { gameState.stats.cha += val; statChanged = true; }
+        else if (type.match(/MYS|灵视/)) { gameState.stats.mys += val; statChanged = true; }
+    }
+
+    if (hpDamageTaken) {
+        const visualArea = document.getElementById('visual-area');
+        const flash = document.createElement('div');
+        flash.style.position = "absolute";
+        flash.style.top = "0"; flash.style.left = "0";
+        flash.style.width = "100%"; flash.style.height = "100%";
+        flash.style.background = "rgba(255,0,0,0.4)";
+        flash.style.zIndex = "99";
+        flash.style.pointerEvents = "none";
+        flash.style.transition = "opacity 0.5s";
+        visualArea.appendChild(flash);
+        setTimeout(() => flash.style.opacity = "0", 100);
+        setTimeout(() => flash.remove(), 600);
+    }
+    if (statChanged) updateStatsUI();
+
+    // 1. SAN Check
     if (data.event === 'san_check') {
         const roll = Math.floor(Math.random() * 100) + 1;
         const success = roll <= gameState.stats.san;
         const dmg = success ? 0 : Math.floor(Math.random() * 10) + 1;
         gameState.stats.san -= dmg;
-        updateStatsUI(); // 数值变了再刷一次
+        updateStatsUI();
         const checkText = `[SAN检定: ${roll}/${gameState.stats.san + dmg}] ${success ? '你稳住了心神。' : '你的理智受到了冲击！(SAN -'+dmg+')'}`;
         data.description = checkText + "\n" + data.description;
     }
 
-    // 2. 处理掉落物品 (Loot)
+    // 2. Loot 结算
     if (data.loot && Array.isArray(data.loot) && data.loot.length > 0) {
         let lootText = "";
         data.loot.forEach(item => {
-            // 容错处理1：如果AI发疯返回了纯字符串（例如 ["钥匙"]），把它包装成对象
-            if (typeof item === 'string') {
-                item = { name: item, type: 'misc', desc: '看起来很有用。' };
+            if (typeof item === 'string') item = { name: item, type: 'misc', desc: '这就只是一个普通的' + item + '。' };
+            if (!item || !item.name) return;
+
+            if (item.name.match(/金钱|Money|报酬|资金|余额|散钱|钞票|现金|Cash|Coin|元/i)) {
+                let val = parseInt(item.name.replace(/[^0-9]/g, ''));
+                if (!val || val <= 0) val = item.count ? item.count * 10 : 50; 
+                gameState.money += val;
+                lootText += `\n<span style="color:var(--accent-glitch)">[ 账户入账: ¥${val} ]</span>`;
+                return;
             }
-            
-            // 容错处理2：核心修复！如果物品无效或没有名字，直接跳过，绝不显示 undefined
-            if (!item || !item.name) return; 
+
+            if (item.name.match(/声望|Reputation|名声/i)) {
+                let val = parseInt(item.name.replace(/[^0-9]/g, '')) || item.count || 10;
+                gameState.reputation += val;
+                lootText += `\n<span style="color:var(--accent-gold)">[ 声望提升: +${val} ]</span>`;
+                return;
+            }
+
+            if (item.name.match(/单|票|纸|书|信|Bill|Paper|Trash|垃圾|废/i)) {
+                item.type = 'misc';
+                delete item.effect;
+            }
+            if (!item.desc || item.desc.length < 2) {
+                if (item.type === 'consumable') item.desc = "看起来可以吃，但不保证味道。";
+                else if (item.type === 'key') item.desc = "这一定能打开某样东西。";
+                else item.desc = "平平无奇的物品，也许以后有用。";
+            }
+            if (!item.type) {
+                if (item.name.match(/药|水|饭|面包|酒|茶|Drink|Food|Pill/i)) item.type = 'consumable';
+                else if (item.name.match(/钥匙|卡|Key|Card/i)) item.type = 'key';
+                else item.type = 'misc';
+            }
+            if (item.type === 'consumable' && !item.effect) {
+                if (item.name.match(/SAN|理智|烟|酒|糖/i)) item.effect = "san+5";
+                else item.effect = "hp+10";
+            }
 
             const existing = gameState.inventory.find(i => i.name === item.name);
             if (existing && existing.type === 'consumable') {
-                existing.count++;
+                existing.count = (existing.count || 1) + (item.count || 1);
             } else if (!existing) {
-                item.count = 1;
-                item.id = item.id || 'item_' + Date.now();
-                if (!item.desc_insane) item.desc_insane = "这东西看起来扭曲而恶心。";
+                item.count = item.count || 1;
+                item.id = item.id || 'item_' + Date.now() + Math.random();
+                if (!item.desc_insane) item.desc_insane = "它在看着你...甚至在呼吸。";
                 gameState.inventory.push(item);
             }
             lootText += `\n[获得物品: ${item.name}]`;
         });
+        updateStatsUI();
         data.description += lootText;
     }
 
-    // 3. 处理地图解锁
-    // 修改：增加判断，如果 AI 返回 "none" 则不执行
+    // 3. 地图解锁
     if (data.unlock_location && data.unlock_location.toLowerCase() !== "none") {
         const locName = data.unlock_location;
         if (!gameState.unlockedLocations.find(l => l.name === locName)) {
-            gameState.unlockedLocations.push({ name: locName, id: 'loc_'+Date.now(), locked: false, type: 'danger' });
-            data.description += `\n[地图更新: 已标记 "${locName}"]`;
+            let locType = 'normal'; 
+            if (/危|死|暗|禁|Danger|Dark/i.test(locName)) locType = 'danger';
+            if (/店|商|Shop|Store|Mart/i.test(locName)) locType = 'shop';
+            if (/医|药|Heal|Clinic/i.test(locName)) locType = 'heal';
+
+            gameState.unlockedLocations.push({ 
+                name: locName, 
+                id: 'loc_' + Date.now(), 
+                locked: false, 
+                type: locType,
+                parent: gameState.currentLocation 
+            });
+            
+            data.description += `\n<span style="color:var(--accent-glitch)">[ 地图更新: 发现新区域 "${locName}" (位于 ${gameState.currentLocation} 附近) ]</span>`;
         }
     }
 
-    // 4. 处理新线索 (新增)
-    // 修改：增加判断，如果 AI 返回 "none" 则不显示
+    // 4. 新线索
     if (data.new_clue && data.new_clue.toLowerCase() !== "none") {
-        gameState.clues.push(data.new_clue);
-        data.description += `\n<span style="color:var(--accent-gold)">[ 记录线索: ${data.new_clue} ]</span>`;
+        const badKeywords = ["无", "失败", "未获得", "没有", "None", "Nothing", "Fail"];
+        const isBadClue = badKeywords.some(kw => data.new_clue.includes(kw));
+
+        if (!isBadClue) {
+            gameState.clues.push(data.new_clue);
+            data.description += `\n<span style="color:var(--accent-gold)">[ 记录线索: ${data.new_clue} ]</span>`;
+        } else {
+            data.description += `\n<span style="color:var(--dim); font-size:0.9rem;">( ${data.new_clue} )</span>`;
+        }
     }
 
-
-    // 5. 处理任务更新 (新增)
+    // 5. 任务更新
     if (data.update_quest) {
-        // 简单起见，我们把旧任务都标记为完成，添加新任务
         gameState.quests.forEach(q => q.active = false);
         gameState.quests.push({ id: 'q_'+Date.now(), text: data.update_quest, active: true });
         data.description += `\n<span style="color:var(--accent-glitch); border:1px solid var(--accent-glitch); padding:2px;">[ 任务更新: ${data.update_quest} ]</span>`;
     }
 
-    // 6. 处理声望/金钱变化 (AI 可能会在描述里暗示，但我们可以加个简单的关键词检测)
-    // 这里做一个简单的逻辑：如果描述里包含 "声望提升" 或 "名声大噪"，我们手动加一点
-    if (data.description.includes("声望提升") || data.description.includes("名声")) {
+    // 6. 声望变化
+    if (data.description.includes("声望提升") || data.description.includes("名声大噪")) {
         gameState.reputation += 5;
         data.description += `\n<span style="color:var(--accent-gold)">[ ▲ 声望提升 ]</span>`;
     }
-    // 如果包含 "获得报酬" 或 "转账"
-    if (data.description.includes("获得报酬") || data.description.includes("入账")) {
-        // 简单的正则提取数字，或者让AI以后明确返回 money 字段。
-        // 暂时我们让AI自由发挥，这里只做视觉提示，数值由AI下次读取时更新（如果AI没改，我们手动加一点低保）
-        // 为了保险，我们给个低保：
-        gameState.money += 100; 
-        data.description += `\n<span style="color:var(--accent-glitch)">[ ¥ 资金变动 ]</span>`;
-    }
 
-
-    // 状态切换：等待 -> 就绪
     avgState.isWaitingForAI = false;
     avgState.isReadyToPlay = true;
     avgState.pendingChoices = [];
     avgState.tempData = data; 
 
-    // 【修复】确保选项层是关闭且空的，防止UI穿模
     const choicesLayer = document.getElementById('choices-layer');
     choicesLayer.classList.remove('active');
     choicesLayer.innerHTML = ''; 
 
-    // 视觉反馈
     const textEl = document.getElementById('main-text');
     textEl.innerHTML = `<span style="color: var(--accent-glitch); animation: blink 0.5s infinite;">[ 信号已捕获 / 点击读取 ]</span>`;
     document.getElementById('click-arrow').classList.add('show');
@@ -1615,28 +2189,28 @@ function processSceneData(data) {
 function startPlayingText(data) {
     let rawText = data.description.replace(/<br>/g, "\n");
     
-    // === 核心修复：保护 HTML 标签不被标点符号切碎 ===
-    // 1. 先把所有的 <span...>...</span> 提取出来，用占位符代替
+    // HTML标签保护逻辑
     const htmlTags = [];
     rawText = rawText.replace(/<span[^>]*>.*?<\/span>/g, (match) => {
         htmlTags.push(match);
-        return `___HTML_PROTECT_${htmlTags.length - 1}___`; // 使用不含标点的占位符
+        return `___HTML_PROTECT_${htmlTags.length - 1}___`; 
+    });
+    // div 块级元素保护 (新增)
+    rawText = rawText.replace(/<div[^>]*>.*?<\/div>/s, (match) => {
+        htmlTags.push(match);
+        return `___HTML_PROTECT_${htmlTags.length - 1}___`; 
     });
 
-    // 2. 执行原有的分句逻辑（现在不会切断HTML了，因为占位符里没标点）
     let sentences = rawText.match(/[^。！？\n]+[。！？\n]+|[^。！？\n]+$/g) || [rawText];
     
-    // 3. 把占位符还原回 HTML 标签，并存入队列
     avgState.textQueue = sentences.map(s => {
         let text = s.trim();
-        // 检查并还原
         if (text.includes('___HTML_PROTECT_')) {
             text = text.replace(/___HTML_PROTECT_(\d+)___/g, (m, id) => htmlTags[id]);
         }
         return text;
     }).filter(s => s.length > 0);
     
-    // 重置状态
     avgState.pendingChoices = data.choices || []; 
     document.getElementById('choices-layer').innerHTML = ''; 
     document.getElementById('choices-layer').classList.remove('active');
@@ -1646,75 +2220,113 @@ function startPlayingText(data) {
 }
 
 function nextText() {
+    // 1. 如果正在连接AI，绝对禁止操作
     if (avgState.isWaitingForAI) return;
 
+    // 2. 如果数据刚回来准备播放
     if (avgState.isReadyToPlay) {
         avgState.isReadyToPlay = false;
         startPlayingText(avgState.tempData);
+        updateLockVisuals(); // 开始播放，立即上锁
         return;
     }
 
     const textEl = document.getElementById('main-text');
     const arrowEl = document.getElementById('click-arrow');
 
-    // 1. 如果正在打字，玩家点击了，瞬间显示全句
+    // 3. 点击加速：如果正在打字，玩家点击了，瞬间显示全句
     if (avgState.isTyping) {
         clearInterval(avgState.typingTimer);
-        // 这里改用 innerHTML，防止打断时样式失效
-        textEl.innerHTML = avgState.currentFullText; 
+        textEl.innerHTML = avgState.currentFullText; // 显示全句
         avgState.isTyping = false;
         arrowEl.classList.add('show');
+        
+        // 关键点：加速打完后，虽然isTyping假了，但checkInputLock会检查队列
+        // 如果队列还有话，UI依然会保持锁定状态，只有对话框能点
+        updateLockVisuals(); 
         return;
     }
 
-    // 2. 队列里还有话没说完
+    // 4. 队列里还有话没说完 (连续播放阶段)
     if (avgState.textQueue.length > 0) {
         const nextLine = avgState.textQueue.shift();
         avgState.currentFullText = nextLine;
         
-        // === 核心修复开始：检测是否包含HTML标签 ===
-        // 如果这一行是以 < 开头的（比如任务更新、获得物品的提示），说明它是HTML代码
-        // 我们直接用 innerHTML 渲染它，跳过打字机动画，否则会显示乱码
+        // 只要还有话没说完，就保持锁定
+        avgState.isTyping = true;
+        updateLockVisuals(); // 确保更新视觉状态
+
+        // HTML特殊渲染（直接显示，不打字）
         if (nextLine.trim().startsWith('<')) {
             textEl.innerHTML = nextLine; 
-            // 存入日志时，把HTML标签去掉，只留纯文本，不然日志里也会乱码
+            // 去除HTML标签存日志
             addToLog(nextLine.replace(/<[^>]+>/g, '')); 
-            arrowEl.classList.add('show'); // 直接显示“继续”箭头
+            
+            avgState.isTyping = false; // 瞬间完成
+            arrowEl.classList.add('show');
+            // 即使瞬间完成，只要队列还有下一句，checkInputLock依然返回true
+            updateLockVisuals();
             return; 
         }
-        // === 核心修复结束 ===
 
+        // 普通打字机逻辑
         avgState.charIndex = 0;
-        avgState.isTyping = true;
-        textEl.innerHTML = ""; // 清空当前文本
+        textEl.innerHTML = ""; 
         arrowEl.classList.remove('show');
-        addToLog(nextLine); // 普通对话存入日志
+        addToLog(nextLine); 
 
         avgState.typingTimer = setInterval(() => {
-            // 这里用 textContent 追加字符，防止打字过程中把 HTML 标签拆散
             textEl.textContent += avgState.currentFullText.charAt(avgState.charIndex);
             avgState.charIndex++;
             if (avgState.charIndex >= avgState.currentFullText.length) {
                 clearInterval(avgState.typingTimer);
                 avgState.isTyping = false;
                 arrowEl.classList.add('show');
+                // 一句打完了，刷新一下锁的状态
+                // 因为我们修改了checkInputLock，只要还有下一句，这里依然是锁着的
+                updateLockVisuals();
             }
-        }, 30); // 打字速度
+        }, 30); 
         return;
     }
 
-    // 3. 没话说了，显示选项
+    // 5. 没话说了 (队列空了) -> 进入选择阶段或自由模式
+    // 只有到了这一步，所有文字都播完了，我们才显示选项，或者解锁UI
     if (!document.getElementById('choices-layer').classList.contains('active')) {
         showChoices(avgState.pendingChoices);
+        
+        // 只有选项显示出来了，或者进入了自由模式，checkInputLock 才会返回 false
+        // 这时候执行更新，UI才会亮起来
+        updateLockVisuals(); 
     }
 }
 
+// === 修改后的 showChoices：支持自由探索模式 ===
 function showChoices(choices) {
     const layer = document.getElementById('choices-layer');
     layer.innerHTML = ''; // 再次清空，确保安全
-    if(!choices || choices.length === 0) {
-        choices = [{text: "继续...", action: "continue"}];
+    
+    // === 核心修改：如果 choices 为空数组，说明进入自由探索模式 ===
+    if (!choices || choices.length === 0) {
+        layer.classList.remove('active'); // 隐藏选项层
+        
+        // 我们给输入框加个高亮动画
+        const freeInput = document.getElementById('free-action-bar');
+        freeInput.style.boxShadow = "0 0 15px var(--accent-glitch)";
+        setTimeout(() => { freeInput.style.boxShadow = "none"; }, 1000);
+        
+        // 【修复】防止重复追加提示。先获取对话框，检查里面是否已经包含了这句话
+        const textEl = document.getElementById('main-text');
+        const tipText = "[ 自由探索模式: 请使用地图移动或下方输入框行动 ]";
+        
+        // 只有当文本里还没有这句话时，才追加
+        if (!textEl.innerText.includes(tipText)) {
+            textEl.innerHTML += `<br><br><span style="color:var(--accent-gold); font-size:0.9rem; border:1px solid var(--accent-gold); padding:2px 5px;">${tipText}</span>`;
+        }
+        return; 
     }
+    // ================================================
+
     choices.forEach(c => {
         const btn = document.createElement('button');
         btn.className = 'pixel-btn';
@@ -1740,81 +2352,176 @@ async function handleScene(action, extraInfo = "") {
     let prompt = "";
     let isSystemEvent = false;
 
-    // 1. 强制开场流程 (同时生成第一个核心谜团)
+    // 1. 强制开场流程
     if (action === "intro_day1") {
         gameState.currentLocation = "404号事务所";
-        // 强制要求生成 mystery_setup
-        prompt = `游戏开始。玩家${gameState.player.name}刚搬进404号事务所。
-        请描述玩家整理行李时的诡异氛围。
-        同时，**必须**生成第一个核心谜团（Mystery Setup）。
-        谜团要求：一个具体的、诡异的事件（如：半夜的敲门声、墙里的老鼠声其实是人声等）。
-        设定一个“真相”（玩家不可见），并设定解决期限（2-4天）。
-        **注意：不要在 description 文本里写“[触发谜团]”之类的系统提示，只返回 JSON 字段即可，UI会自动渲染提示框。**`;
+        // 修改：设定为都市日常兼怪谈风格，强调“穷”和“日常”
+        prompt = `游戏开始。
+        背景：玩家${gameState.player.name}转职私家侦探入住雾川市老城区的404号事务所已经三个月了。
+        现在的状态是：很穷，非常穷。冰箱里只剩半瓶可乐，账户余额令人心碎。
+        
+        请描述：
+        1. 一个充满生活气息的早晨
+        2. 玩家正在做一件极度无聊的事。
+        3. **突发事件**：事务所的门铃响了，或者手机震动了，玩家看看怎么个事儿。
+        
+        **必须**生成第一个核心谜团（Mystery Setup）。
+        谜团要求：**都市怪谈/黑色幽默风格**。不要太恐怖，要有一种“这事儿透着古怪但又有点好笑”的感觉。
+        设定一个“真相”（玩家不可见），并设定解决期限（3-5天）。
+        不要在 description 写系统提示，只返回 JSON。`;
         isSystemEvent = true;
     } 
 
     // 2. 事务所电脑交互
     else if (action === "check_email") {
         if (!gameState.mystery.active) {
-            // 没有谜团时，强制引导生成新谜团
-            prompt = `玩家查看了电脑邮件。请生成一个新的委托或怪谈，并**必须**返回 mystery_setup 字段来开启这个新谜团。
-            描述邮件的内容，越诡异越好。`;
+            prompt = `玩家查看了电脑邮件。请生成一个新的委托或怪谈，并**必须**返回 mystery_setup 字段来开启这个新谜团。`;
         } else {
-            // 有谜团时，提供线索
-            prompt = `玩家利用电脑查询关于“${gameState.mystery.title}”的资料。
+            prompt = `玩家查询关于“${gameState.mystery.title}”的资料。
             请根据真相“${gameState.mystery.truth}”，提供一条相关的线索（new_clue）。`;
         }
-    }
+}
+
 
     // 3. 移动逻辑
     else if (action === "move") {
         const oldLocation = gameState.currentLocation;
         gameState.currentLocation = extraInfo;
-        prompt = `玩家决定离开【${oldLocation}】，前往【${extraInfo}】。
-        请按以下逻辑生成剧情：
-        1. 描述移动过程。
-        2. 描述抵达【${extraInfo}】后的景象。
-        当前时间：${TIME_PHASES[gameState.timePhase]}。`;
+        prompt = `玩家离开【${oldLocation}】前往【${extraInfo}】。
+        描述移动过程和抵达后的景象。当前时间：${TIME_PHASES[gameState.timePhase]}。`;
         if (gameState.timePhase === 3) prompt += " 夜晚充满了危险气息。";
-    }
-    // 4. 睡觉结算 (包含谜团截止日判定)
-    else if (action === "sleep") {
-        // 检查是否到达截止日期
-        if (gameState.mystery.active && gameState.day >= gameState.mystery.deadlineDay) {
-            // 触发强制结算
-            handleScene('resolve_mystery_check');
-            return; // 中断普通睡觉逻辑
+}
+
+    // === 新增：处理一键探索逻辑 ===
+    else if (action === "explore_current_location") {
+        isSystemEvent = true;
+        
+        // ★★★ 核心修改：探索是耗时行为，强制推进时间 ★★★
+        // 只有当时间还没到深夜(3)时才推进，避免深夜探索直接跳到第二天
+        if (gameState.timePhase < 3) {
+            advanceTime(); 
         }
 
-        // 普通睡觉
-        gameState.stats.hp = Math.min(gameState.stats.maxHp, gameState.stats.hp + 30);
-        gameState.stats.san = Math.min(gameState.stats.maxSan, gameState.stats.san + 15);
-        gameState.day++;
-        gameState.timePhase = 0;
-        updateStatsUI();
-        prompt = `玩家睡了一觉，度过了平安夜。现在是第${gameState.day}天上午。描述醒来的感觉。`;
+        // 获取玩家的 MYS (灵视) 和 INT (学识) 属性
+        const mys = gameState.stats.mys;
+        const int = gameState.stats.int;
+        
+        prompt = `玩家决定花费时间在【${gameState.currentLocation}】仔细搜寻一番。
+        ★ 注意：玩家花费了时间，当前时间变成了：${TIME_PHASES[gameState.timePhase]}。
+        请在描述中体现时间的流逝（例如：搜寻了很久，天色渐晚...）。
+        
+        玩家属性：灵视(MYS):${mys}, 学识(INT):${int}。
+        
+        请根据地点和属性生成结果：
+        1. **物品 (Loot)**：如果有价值的东西，请放入 loot 数组。
+        2. **线索 (Clue)**：如果这里有关于谜团的蛛丝马迹，请通过 new_clue 字段返回。
+        3. **描述**：描述玩家翻箱倒柜的过程。如果一无所获，请直说。`;
     }
-    // === 新增：谜团结算判定 ===
-    else if (action === "resolve_mystery_check") {
+
+
+    // === 新增：睡前推理题生成 (Trigger Quiz) - 难度升级版 ===
+    else if (action === "generate_night_quiz") {
         isSystemEvent = true;
-        // 让AI根据玩家的历史行为判断是否解开了谜题
-        prompt = `【核心谜团结算时刻】
-        当前谜团：${gameState.mystery.title}
-        设定真相：${gameState.mystery.truth}
         
-        请回顾玩家最近几天的调查记录（History），判断玩家是否已经发现了真相或解决了源头。
+        // 获取当前线索，让题目更具体
+        const clueText = gameState.clues.length > 0 ? gameState.clues.join("、") : "暂无明确线索，只能靠直觉";
+
+        prompt = `玩家准备睡觉，进入【烧脑推理环节】。
+        当前谜团：『${gameState.mystery.title}』。
+        真相是：『${gameState.mystery.truth}』。
+        玩家已知的线索：${clueText}。
         
-        请严格返回JSON，包含 "mystery_result": { "success": true/false, "reason": "..." }。
-        并描述结算剧情：
-        - 如果成功：描述玩家如何揭穿了真相，或者在梦中击败了梦魇。
-        - 如果失败：描述真相如何吞噬了玩家（例如：敲门声变成了破门而入，或者玩家被某种诅咒缠身），并给予惩罚。
+        请生成一个【高难度的三选一逻辑推理题】，让玩家推测真相。
         
-        无论成功失败，时间都会进入第二天。`;
+        ★ 核心要求（非常重要）：
+        1. **拒绝弱智选项**：错误选项必须非常有迷惑性！它们应该是看似符合逻辑但细节错误的“陷阱”，或者是符合恐怖片套路的“红鲱鱼”。
+        2. **增加模糊度**：正确选项不要写得太直白，要含蓄、深刻，或者反直觉。
+        3. **考察细节**：问题应该直指谜团的核心矛盾，而不是简单的表面现象。
         
-        // 结算后强制过一天
-        gameState.day++;
-        gameState.timePhase = 0;
+        请严格返回JSON格式，必须包含 "quiz" 字段：
+        {
+            "description": "夜深了，窗外的风声像是有人在呜咽。关于『${gameState.mystery.title}』的碎片在脑海中拼凑……你忽然意识到一个被忽略的细节：",
+            "quiz": {
+                "question": "这里填入具体的推理问题（例如：那个声音的真正来源其实是？）",
+                "options": ["看似合理但错误的干扰项A（误导玩家）", "正确但反直觉的推论B", "符合常理但错误的干扰项C"],
+                "correct_index": 1
+            }
+        }
+        `;
     }
+
+    // === 新增：推理结果处理与入睡 ===
+    else if (action === "process_quiz_answer") {
+        // extraInfo 这里传入的是 { choiceIndex: number, isCorrect: boolean }
+        const result = extraInfo;
+        
+        // 1. 答对了
+        if (result.isCorrect) {
+            gameState.mystery.status = "solved";
+            // 奖励发放
+            gameState.money += 2000;
+            gameState.reputation += 30;
+            gameState.stats.san = Math.min(gameState.stats.maxSan, gameState.stats.san + 30);
+            
+            prompt = `玩家在睡前准确地推理出了真相！(玩家选择了正确的选项)。
+            虽然现在已经是深夜，但玩家安心地睡着了。
+            请简短描述玩家感到如释重负，做了一个好梦。
+            (注意：具体的揭秘剧情留到明天早上醒来再说)`;
+            
+            // 标记，方便第二天早上用
+            gameState.mystery.readyToResolve = true; 
+        } 
+        // 2. 答错了
+        else {
+            // 检查是否到了死期
+            const isDeadline = gameState.day >= gameState.mystery.deadlineDay;
+            
+            if (isDeadline) {
+                gameState.mystery.status = "failed";
+                gameState.stats.san -= 30;
+                gameState.stats.maxHp -= 20;
+                prompt = `玩家推理错误！而且今晚已经是最后的期限了。
+                描述玩家带着错误的猜测入睡，感到一种深深的不安和即将到来的厄运。`;
+                gameState.mystery.readyToResolve = true; // 准备迎接坏结局
+            } else {
+                // 没到死期，无事发生
+                prompt = `玩家推理错误。
+                描述玩家觉得这个推论有些牵强，摇了摇头，决定先睡觉，明天再继续调查。
+                (正常睡觉，扣除少量SAN值)`;
+                gameState.stats.san -= 5;
+            }
+        }
+        
+        // 修改：不再立即过夜，而是标记“待过夜”，等玩家点“继续”时再跳时间
+        gameState.pendingSleep = true; 
+    }
+
+    // === 修改：早晨唤醒逻辑 (Wake Up) ===
+    else if (action === "wake_up") {
+        // 检查昨晚是否解决了谜团（或彻底失败了）
+        if (gameState.mystery.readyToResolve) {
+            isSystemEvent = true;
+            const isSuccess = gameState.mystery.status === "solved";
+            
+            prompt = `已经是第二天早上 (Day ${gameState.day})。
+            关于谜团『${gameState.mystery.title}』，玩家的结果是：${isSuccess ? "【成功破解】" : "【彻底失败】"}。
+            真相是：${gameState.mystery.truth}。
+            
+            请根据这个结果，生成一段精彩的【结案剧情】。
+            - 如果成功：描述谜团如何消散，或者委托人发来感谢信，或者发现怪物消失了。
+            - 如果失败：描述不可挽回的后果，或者玩家受到了永久的诅咒。
+            
+            最后清理掉当前的 mystery_setup (通过 mystery_result 字段通知前端关闭谜团)。`;
+            
+            // 清理标记
+            gameState.mystery.readyToResolve = false;
+        } else {
+            // 普通早晨
+            prompt = `玩家睡了一觉醒来。现在是第${gameState.day}天上午。
+            描述阳光洒进事务所，或者窗外阴雨绵绵。询问玩家今天的计划。`;
+        }
+    }
+
     // === 自由行动判定逻辑 ===
     else if (action === "judge_action") {
         isSystemEvent = true;
@@ -1822,17 +2529,12 @@ async function handleScene(action, extraInfo = "") {
         请判断该行动是否需要进行属性检定。
         请严格返回JSON格式：{"check_needed": "PHY"|"DEX"|"INT"|"CHA"|"MYS"|"NONE", "reason": "..."}`;
     }
-    // === 判定后执行逻辑 ===
     else if (action === "resolve_action") {
-        prompt = `玩家执行了行动。${extraInfo}。
-        请根据这个结果生成精彩的剧情描述。如果失败，请描述后果。`;
+        prompt = `玩家执行了行动。${extraInfo}。请描述结果。`;
     }
-    // === 无判定自由行动 ===
     else if (action === "free_action") {
-        prompt = `玩家执行了自由行动：【${extraInfo}】。
-        请直接描述玩家的行为和结果。`;
+        prompt = `玩家执行了自由行动：【${extraInfo}】。请描述行为和结果。`;
     }
-    // 5. 通用剧情
     else {
         prompt = `玩家选择了：${extraInfo}。继续剧情。`;
     }
@@ -1845,9 +2547,11 @@ async function handleScene(action, extraInfo = "") {
     // UI 状态切换
     avgState.isWaitingForAI = true;
     avgState.pendingChoices = [];
+    updateLockVisuals(); // <--- 关键：发起请求时，立即上锁！
+    
     document.getElementById('main-text').innerHTML = `<span style="animation: blink 1s infinite;">正在连接灵界信号...</span>`;
     
-    // 【核心修复】强制清空旧按钮，防止回弹！
+    // 清空旧按钮
     const choicesLayer = document.getElementById('choices-layer');
     choicesLayer.classList.remove('active');
     choicesLayer.innerHTML = ''; 
@@ -1859,23 +2563,15 @@ async function handleScene(action, extraInfo = "") {
     
     // === 判定逻辑分支处理 ===
     if (action === "judge_action") {
-        avgState.isWaitingForAI = false; // 判定结束，准备下一步
-        
+        avgState.isWaitingForAI = false; 
         if (result && result.check_needed && result.check_needed !== "NONE") {
-            // 需要检定：触发骰子动画
-            const checkObj = {
-                text: extraInfo, // 原始行动文本
-                action: 'resolve_action', // 下一步动作
-                check: result.check_needed // 需要的属性
-            };
-            // 延迟一点点让玩家看到“判定中”
+            const checkObj = { text: extraInfo, action: 'resolve_action', check: result.check_needed };
             document.getElementById('main-text').innerText = `[ 系统判定: 需要 ${result.check_needed} 检定 ]`;
             setTimeout(() => performDiceRoll(checkObj), 500);
         } else {
-            // 不需要检定：直接执行
             handleScene('free_action', extraInfo);
         }
-        return; // 判定请求不直接生成剧情，直接返回
+        return; 
     }
 
     // === 常规剧情处理 ===
@@ -1884,7 +2580,18 @@ async function handleScene(action, extraInfo = "") {
         avgState.isWaitingForAI = false;
         document.getElementById('main-text').innerText = "连接断开。";
         showChoices([{text: "重试", action: action}]);
+        
+        // 关键修复：必须调用这个函数来移除 .game-locked 样式，否则按钮无法点击
+        updateLockVisuals(); 
     }
+}
+
+// 辅助：执行数值层面的睡觉更新
+function performSleepStatsUpdate() {
+    gameState.stats.hp = Math.min(gameState.stats.maxHp, gameState.stats.hp + 30);
+    gameState.day++;
+    gameState.timePhase = 0;
+    updateStatsUI();
 }
 
 function advanceTime() {
@@ -1895,6 +2602,46 @@ function advanceTime() {
 }
 
 async function handleChoice(choice) {
+    // === 新增：Quiz 答案拦截处理 ===
+    if (choice.action === "quiz_answer") {
+        const quizData = gameState.mystery.tempQuizData;
+        const correctIdx = quizData.correct_index;
+        const userIdx = choice.rawIndex;
+        const isCorrect = (userIdx === correctIdx);
+        
+        let feedback = "";
+        if (isCorrect) {
+            feedback = "你感觉到一阵通透，仿佛抓住了命运的红线…… [ 推理正确 ]";
+            alert("✅ 推理正确！\n获得了关键线索，今晚可以睡个安稳觉了。");
+        } else {
+            feedback = "你越想越乱，似乎走进了一条死胡同…… [ 推理错误 ]";
+            alert("❌ 推理错误！\n思绪混乱，SAN值略微下降。");
+        }
+
+        // 把结果传回 handleScene 进行下一步处理
+        handleScene('process_quiz_answer', { choiceIndex: userIdx, isCorrect: isCorrect });
+        return;
+    }
+
+    // 下面是原有的逻辑
+    if (choice.action === "continue") {
+        // === 修复：如果是推理结束后的“继续”，此时才真正执行过夜 ===
+        if (gameState.pendingSleep) {
+            gameState.pendingSleep = false; // 消耗掉这个标记
+            performSleepStatsUpdate(); // 时间变成第二天早上
+            handleScene('wake_up'); // 触发起床剧情
+            return;
+        }
+
+        // 如果是睡觉后的“继续”，意味着要唤醒
+        // 我们检查一下上一条指令是不是 process_quiz_answer 或者 sleep
+        // 简单点：每次点击“继续”，如果 timePhase 是 0 (早晨)，就触发 wake_up 描述
+        if (gameState.timePhase === 0 && !avgState.tempData?.move_to) {
+             handleScene('wake_up');
+             return;
+        }
+    }
+
     // 1. 检查金钱
     if (choice.costMoney && gameState.money < choice.costMoney) {
         alert("资金不足！");
@@ -1907,24 +2654,23 @@ async function handleChoice(choice) {
         return;
     }
 
-    // 3. 扣除金钱 (如果有)
+    // 3. 扣除金钱
     if (choice.costMoney) {
         gameState.money -= choice.costMoney;
         updateStatsUI();
     }
 
-    // 4. 属性检定逻辑 (修改点：拦截并播放动画)
+    // 4. 属性检定逻辑
     if (choice.check) {
-        // 这里的 return 非常重要，它打断了直接发送请求，转而去执行 performDiceRoll
         performDiceRoll(choice); 
         return; 
     } 
     
-    // 5. 如果没有检定，直接执行普通剧情
+    // 5. 普通剧情
     handleScene(choice.action, choice.text);
 }
 
-// --- 新增：骰子动画逻辑 ---
+// --- 新增：骰子动画逻辑 (D100 版) ---
 function performDiceRoll(choice) {
     const layer = document.getElementById('dice-layer');
     const valEl = document.getElementById('dice-val');
@@ -1934,7 +2680,7 @@ function performDiceRoll(choice) {
     const box = document.getElementById('dice-box');
 
     const attr = choice.check.toLowerCase();
-    const statVal = gameState.stats[attr] || 10;
+    const statVal = gameState.stats[attr] || 50; // 默认值改为50
 
     // 初始化界面状态
     layer.style.display = 'flex';
@@ -1945,11 +2691,12 @@ function performDiceRoll(choice) {
     targetEl.innerText = statVal;
     attrEl.innerText = choice.check;
 
-    // 动画阶段：数字狂跳
+    // 动画阶段：数字狂跳 (0-99)
     let count = 0;
     const maxCount = 15; // 跳动次数
     const interval = setInterval(() => {
-        valEl.innerText = Math.floor(Math.random() * 20) + 1;
+        // === 修改：动画显示 1-100 ===
+        valEl.innerText = Math.floor(Math.random() * 100) + 1;
         count++;
         // 增加一点随机震动感
         box.style.transform = `rotate(${Math.random()*4-2}deg)`;
@@ -1962,78 +2709,248 @@ function performDiceRoll(choice) {
 }
 
 function finalizeRoll(choice, statVal) {
-    const roll = Math.floor(Math.random() * 20) + 1; // 真正的命运一掷
-    const success = roll <= statVal; // D20规则：小于等于属性值算成功
+    // === 修改：生成 1-100 的随机数 (D100) ===
+    const roll = Math.floor(Math.random() * 100) + 1; 
+    
+    // D100规则：骰子点数 <= 属性值 算成功
+    // 特殊规则：1-5 大成功，96-100 大失败 (CoC 7版规则变体)
+    let isCritSuccess = (roll <= 5);
+    let isCritFail = (roll >= 96);
+    // 普通判定
+    let success = (roll <= statVal); 
+
+    // 强制覆盖结果
+    if (isCritFail) success = false;
+    if (isCritSuccess) success = true;
     
     const valEl = document.getElementById('dice-val');
     const resEl = document.getElementById('dice-result');
     const box = document.getElementById('dice-box');
+    const layer = document.getElementById('dice-layer'); // 获取背景层
 
     valEl.innerText = roll;
-    box.style.transform = 'rotate(0deg)';
+    
+    // 重置所有特效类
+    box.className = ''; 
+    layer.className = 'overlay-layer'; // 重置背景层动画
+    // 重新加上基础样式
+    box.style.cssText = `
+        font-size: 6rem; font-weight: bold; color: var(--fg); 
+        border: 6px solid var(--fg); width: 140px; height: 140px; 
+        line-height: 120px; margin: 0 auto; position: relative;
+        background: #000; transition: all 0.2s;
+    `;
 
-    // 视觉反馈
-    if(success) {
+    // 构造传给AI的结果文本
+    let resultText = "";
+    let promptSuffix = ""; 
+
+    // 分支判定
+    if (isCritSuccess) {
+        // === 大成功 (金色传说) ===
+        resEl.innerText = "CRITICAL SUCCESS!";
+        resEl.style.color = "#ffd700";
+        box.classList.add('dice-crit-success'); 
+        
+        resultText = `行动: ${choice.text} (检定${choice.check}: 掷出${roll} -> ★大成功★！奇迹发生了！)`;
+        promptSuffix = "【系统提示】：玩家掷出了大成功(1-5)！请描述一个极其完美、意想不到的好结果！给予额外的奖励或线索。";
+        
+    } else if (isCritFail) {
+        // === 大失败 (故障红 + 屏幕红光) ===
+        resEl.innerText = "CRITICAL FAILURE!";
+        resEl.style.color = "#ff0000"; 
+        
+        // 骰子添加故障特效
+        box.classList.add('dice-crit-fail'); 
+        
+        // 背景层添加红色闪烁
+        layer.classList.add('screen-flash-red');
+        
+        resultText = `行动: ${choice.text} (检定${choice.check}: 掷出${roll} -> ☠️大失败☠️！搞砸了！)`;
+        promptSuffix = "【系统提示】：玩家掷出了大失败(96-100)！请描述一个糟糕透顶的结果！玩家可能受了伤、丢失了物品或者被怪物发现了。SAN值受到重创。";
+
+    } else if (success) {
+        // === 普通成功 (绿色) ===
         resEl.innerText = "SUCCESS";
-        resEl.style.color = "#0f0"; // 绿色
+        resEl.style.color = "#0f0";
+        
+        // 手动应用绿色样式，保持简洁
         box.style.borderColor = "#0f0";
         valEl.style.color = "#0f0";
         box.style.boxShadow = "0 0 30px rgba(0, 255, 0, 0.3)";
+        
+        resultText = `行动: ${choice.text} (检定${choice.check}: 掷出${roll} / 目标${statVal} -> 成功)`;
+    
     } else {
+        // === 普通失败 (普通红色) ===
         resEl.innerText = "FAILURE";
-        resEl.style.color = "#f00"; // 红色
-        box.style.borderColor = "#f00";
-        valEl.style.color = "#f00";
-        box.style.boxShadow = "0 0 30px rgba(255, 0, 0, 0.3)";
-        // 失败震动特效
-        box.style.animation = "shake 0.5s";
-        setTimeout(()=> box.style.animation = "", 500);
+        resEl.style.color = "#ff4444"; // 更加显眼的亮红
+        
+        // 应用新增的普通失败类
+        box.classList.add('dice-fail');
+        
+        resultText = `行动: ${choice.text} (检定${choice.check}: 掷出${roll} / 目标${statVal} -> 失败)`;
     }
 
-    // 停顿 1.5秒 让玩家看清结果，然后继续剧情
+    // 停顿 2秒 让玩家欣赏特效，然后继续剧情
     setTimeout(() => {
         document.getElementById('dice-layer').style.display = 'none';
-        
-        // 构造结果文本
-        const resultText = `行动: ${choice.text} (检定${choice.check}: 掷出${roll} / 目标${statVal} -> ${success ? "成功" : "失败"})`;
-        
-        // 如果是自由行动触发的（action是resolve_action），走resolve流程
-        // 如果是按钮触发的（action是普通剧情key），也把结果带进去
-        // 统一调用 handleScene，把结果拼在 extraInfo 里
-        
-        // 这里的 choice.action 可能是 'resolve_action' (自由行动) 或 'break_door' (按钮)
-        // 无论哪种，我们都把结果传给 AI
-        handleScene(choice.action, resultText);
-        
-    }, 1500);
+        layer.className = 'overlay-layer'; // 再次重置背景
+        handleScene(choice.action, resultText + "\n" + promptSuffix);
+    }, 2000);
 }
 
-
-// --- 4. 事务所交互逻辑 ---
+// --- 4. 事务所交互逻辑 (优化版) ---
 function handleOfficeAction(type) {
-    // === 修复：增加地点校验，防止在外面操作事务所设施 ===
     if (gameState.currentLocation !== "404号事务所") {
         addToLog("离得太远了，无法操作。");
-        alert("你现在不在事务所，无法进行此操作！");
-        updateStatsUI(); // 强制刷新一下UI把按钮藏起来
+        showPixelMsg("你现在不在事务所，无法进行此操作！");
+        updateStatsUI();
         return;
     }
 
     if (type === 'sleep') {
-        if (confirm("结束这一天并睡觉？(恢复HP/SAN)")) {
-            handleScene('sleep');
+        if (confirm("准备休息了吗？")) {
+            if (gameState.mystery.active) {
+                // 有谜团，进入睡前推理环节
+                handleScene('generate_night_quiz');
+            } else {
+                performSleepStatsUpdate();
+                handleScene('wake_up'); 
+            }
         }
     }
     else if (type === 'computer') {
-        // 如果当前没有谜团，电脑是获取新谜团的主要途径
+        // === 核心逻辑修改：看电脑 ===
         if (!gameState.mystery.active) {
-            handleScene('check_email', '查看电脑上的委托邮件（尝试获取新谜团）');
+            // 没有谜团 -> 接任务 -> 开启新的谜团 -> 可能会进入自由模式
+            handleScene('check_email', '查看电脑上的委托邮件。如果有新委托，请描述详情，并让玩家处于【自由探索模式】(choices为空)，直到玩家前往相关地点。');
         } else {
-            // 如果有谜团，电脑可能提供线索
-            handleScene('check_email', '查询关于当前谜团的资料');
+            // 有谜团 -> 查资料 -> 可能会给线索 -> 保持自由模式
+            handleScene('check_email', '查询关于当前谜团的资料。如果查到了线索，请告诉玩家，并保持【自由探索模式】让玩家继续去实地调查。');
         }
     }
 }
+
+// --- 4.5 商店系统逻辑 (新增) ---
+
+// 临时存储当前商店的商品，离开地点后清空
+let currentShopItems = [];
+
+async function openShop() {
+    document.getElementById('shop-layer').style.display = 'flex';
+    document.getElementById('shop-player-money').innerText = gameState.money;
+    
+    const shopTitle = gameState.currentLocation + " / 交易";
+    document.getElementById('shop-title').innerText = `/// ${shopTitle} ///`;
+
+    // 如果当前地点已经有缓存的商品，直接显示，不再请求AI（省流量且防止刷商品）
+    if (currentShopItems.length > 0) {
+        renderShopItems();
+        return;
+    }
+
+    // 否则，请求AI进货
+    document.getElementById('shop-list').innerHTML = '';
+    document.getElementById('shop-loading').style.display = 'block';
+
+    const prompt = `
+    玩家进入了【${gameState.currentLocation}】的商店。
+    请生成 4-6 个符合该地点氛围的待售商品。
+    
+    地点氛围参考：
+    - 便利店/超市：正常食物、水、生活用品，偶尔有打折的快过期食品。
+    - 黑市/暗巷：违禁品、情报、奇怪的护身符、武器。
+    - 药店/诊所：药品、绷带、镇静剂。
+    
+    请返回JSON格式，包含 items 数组。每个 item 包含：
+    - name: 商品名
+    - cost: 价格 (数字，普通物品10-100，贵重物品100-1000)
+    - desc: 商品描述 (有趣一点)
+    - type: "consumable" (消耗品) 或 "misc" (杂物) 或 "key" (关键道具)
+    - effect: (选填) 类似 "hp+10", "san+5", "san-5" 等
+    
+    示例：
+    {
+        "items": [
+            {"name": "临期饭团", "cost": 15, "desc": "虽然米饭有点发硬，但能填饱肚子。", "type": "consumable", "effect": "hp+5"},
+            {"name": "强力手电", "cost": 150, "desc": "光束很强，能照亮黑暗角落。", "type": "key"}
+        ]
+    }
+    `;
+
+    const result = await callAI(prompt, true);
+
+    document.getElementById('shop-loading').style.display = 'none';
+
+    if (result && result.items) {
+        currentShopItems = result.items;
+        renderShopItems();
+    } else {
+        document.getElementById('shop-list').innerHTML = '<div style="text-align:center; color:var(--dim)">[ 这里的货架是空的... ]</div>';
+    }
+}
+
+function renderShopItems() {
+    const list = document.getElementById('shop-list');
+    list.innerHTML = '';
+
+    currentShopItems.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'shop-card';
+        
+        // 检查钱够不够
+        const canAfford = gameState.money >= item.cost;
+        
+        card.innerHTML = `
+            <div class="shop-item-header">
+                <div class="shop-item-name">${item.name}</div>
+                <div class="shop-item-price">¥${item.cost}</div>
+            </div>
+            <div class="shop-item-desc">${item.desc}</div>
+            <button class="shop-buy-btn" ${canAfford ? '' : 'disabled'} onclick="buyItem(${index})">
+                ${canAfford ? '购 买' : '余额不足'}
+            </button>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function buyItem(index) {
+    const item = currentShopItems[index];
+    if (gameState.money < item.cost) {
+        showPixelMsg("❌ 你的钱不够！<br><span style='font-size:0.9rem; color:#aaa'>老板用看穷鬼的眼神看着你。</span>");
+        return;
+    }
+
+    // 扣钱
+    gameState.money -= item.cost;
+    document.getElementById('shop-player-money').innerText = gameState.money; // 更新商店页面的钱
+    updateStatsUI(); // 更新主界面的钱
+
+    // 进货到背包
+    // 深拷贝一份物品，防止修改原数据
+    const boughtItem = JSON.parse(JSON.stringify(item));
+    
+    // 自动补全必要字段，防止报错
+    if (!boughtItem.id) boughtItem.id = 'bought_' + Date.now();
+    if (!boughtItem.count) boughtItem.count = 1;
+
+    // 检查背包堆叠
+    const existing = gameState.inventory.find(i => i.name === boughtItem.name && i.type === boughtItem.type);
+    if (existing && existing.type === 'consumable') {
+        existing.count++;
+    } else {
+        gameState.inventory.push(boughtItem);
+    }
+
+    showPixelMsg(`✅ 购买成功！<br><span style="color:var(--accent-glitch)">${item.name}</span> 已放入背包。`);
+    
+    // 刷新商店按钮状态（可能买完这个就买不起下一个了）
+    renderShopItems();
+}
+
+
 
 // --- 5. 物品栏逻辑 ---
 
@@ -2079,18 +2996,27 @@ function useItem(index) {
     const item = gameState.inventory[index];
     if (!item) return;
 
+    let msg = "";
+
     if (item.effect) {
         if (item.effect.includes("hp+")) {
             const val = parseInt(item.effect.split('+')[1]);
             gameState.stats.hp = Math.min(gameState.stats.maxHp, gameState.stats.hp + val);
-            alert(`使用了 ${item.name}，HP恢复了 ${val}`);
+            msg = `使用了 <span style="color:var(--accent-glitch)">${item.name}</span><br>生命值恢复了 <span style="color:#0f0; font-size:1.4rem;">+${val}</span>`;
         }
-        if (item.effect.includes("san+")) {
+        else if (item.effect.includes("san+")) {
             const val = parseInt(item.effect.split('+')[1]);
             gameState.stats.san = Math.min(gameState.stats.maxSan, gameState.stats.san + val);
-            alert(`使用了 ${item.name}，理智恢复了 ${val}`);
+            msg = `使用了 <span style="color:var(--accent-glitch)">${item.name}</span><br>理智值恢复了 <span style="color:var(--accent-glitch); font-size:1.4rem;">+${val}</span>`;
+        } else {
+             msg = `使用了 ${item.name}。<br><span style="color:#aaa; font-size:0.9rem">(似乎没有什么明显效果)</span>`;
         }
+    } else {
+        msg = `使用了 ${item.name}。<br><span style="color:#aaa; font-size:0.9rem">(它只是一个普通的物品)</span>`;
     }
+
+    // 真正的逻辑修改：不再弹 alert，而是弹我们的美化窗
+    showPixelMsg(msg);
 
     item.count--;
     if (item.count <= 0) {
@@ -2326,32 +3252,82 @@ async function handlePhoneAction(app) {
 }
 
 
-// --- 6. 地图逻辑 ---
+// --- 6. 地图逻辑 (树状图升级版) ---	
 
 function showMap() {
-    const grid = document.getElementById('map-grid');
-    grid.innerHTML = '';
-    
-    gameState.unlockedLocations.forEach(loc => {
-        const node = document.createElement('div');
-        const isCurrent = loc.name === gameState.currentLocation;
-        node.className = `map-node ${isCurrent ? 'current' : ''} ${loc.locked ? 'locked' : ''}`;
-        
-        let tag = "";
-        if (loc.type === 'shop') tag = `<div class="map-tag">商店</div>`;
-        if (loc.type === 'heal') tag = `<div class="map-tag">治疗</div>`;
-        if (loc.type === 'danger') tag = `<div class="map-tag" style="color:red; border-color:red;">危险</div>`;
+    // 1. 检查锁定状态
+    if (checkInputLock()) return;
 
-        node.innerHTML = `${loc.name} ${isCurrent ? "<br>(当前)" : ""} ${tag}`;
+    // 2. === 核心修改：危险地区禁止打开地图 ===
+    // 找到当前地点的配置
+    const currentLocData = gameState.unlockedLocations.find(l => l.name === gameState.currentLocation);
+    
+    // 如果是危险区域 (type === 'danger') 或者是深夜 (timePhase === 3) 且不在家
+    const isNight = gameState.timePhase === 3;
+    const isDanger = currentLocData && currentLocData.type === 'danger';
+    const isAtHome = gameState.currentLocation === '404号事务所';
+
+    if ((isDanger || (isNight && !isAtHome)) && !isAtHome) {
+        showPixelMsg(`
+            ⚠️ <span style="color:var(--accent-red)">危险锁定</span><br>
+            <div style="font-size:0.9rem; margin-top:10px; color:#ccc; text-align:left;">
+            你感觉周围有视线在注视着你，无法冷静地查看地图。<br>
+            <br>
+            必须先通过<span style="color:var(--accent-gold)">[自由行动]</span>输入“逃跑”、“撤退”或击败威胁，确认环境安全后才能移动。
+            </div>
+        `);
+        return;
+    }
+
+    // --- 以下是原有的地图显示逻辑 ---
+    const container = document.getElementById('map-grid');
+    container.className = 'map-container'; 
+    container.innerHTML = '';
+    
+    const allLocs = gameState.unlockedLocations;
+    
+    function renderNode(loc, containerEl) {
+        const nodeEl = document.createElement('div');
+        const isCurrent = loc.name === gameState.currentLocation;
+        nodeEl.className = `map-node ${isCurrent ? 'current' : ''} ${loc.locked ? 'locked' : ''}`;
+        
+        let tagHtml = '';
+        if (loc.type === 'shop') tagHtml = `<span class="map-tag tag-shop">商店</span>`;
+        if (loc.type === 'heal') tagHtml = `<span class="map-tag tag-safe">治疗</span>`;
+        if (loc.type === 'danger') tagHtml = `<span class="map-tag tag-danger">危险</span>`;
+
+        nodeEl.innerHTML = `<span>${loc.name}</span> ${tagHtml}`;
         
         if (!isCurrent && !loc.locked) {
-            node.onclick = () => {
+            nodeEl.onclick = (e) => {
+                e.stopPropagation(); 
                 hideOverlay('map-layer');
                 handleScene('move', loc.name);
             };
         }
-        grid.appendChild(node);
-    });
+        
+        containerEl.appendChild(nodeEl);
+        const children = allLocs.filter(l => l.parent === loc.name);
+        if (children.length > 0) {
+            const branchEl = document.createElement('div');
+            branchEl.className = 'map-branch';
+            children.forEach(child => renderNode(child, branchEl));
+            containerEl.appendChild(branchEl);
+        }
+    }
+
+    const rootLocs = allLocs.filter(l => !l.parent || !allLocs.find(p => p.name === l.parent));
+    
+    if (rootLocs.length === 0 && allLocs.length > 0) {
+        allLocs.forEach(l => renderNode(l, container));
+    } else {
+        rootLocs.forEach(root => {
+            const rootWrapper = document.createElement('div');
+            rootWrapper.className = 'map-root';
+            renderNode(root, rootWrapper);
+            container.appendChild(rootWrapper);
+        });
+    }
 
     document.getElementById('current-location-name').innerText = gameState.currentLocation;
     document.getElementById('map-layer').style.display = 'flex';
@@ -2360,11 +3336,15 @@ function showMap() {
 // --- 7. AI 接口 ---
 
 async function callAI(userPrompt, isSystem = false) {
-    // 构建记忆文本
+    // 1. 构建记忆文本
     const activeQuests = gameState.quests.filter(q => q.active).map(q => q.text).join("; ");
     const knownClues = gameState.clues.join("; ");
     
-    // 构建谜团信息 (AI可见，玩家不可见)
+    const inventoryItems = gameState.inventory.length > 0 
+        ? gameState.inventory.map(i => i.name).join("、") 
+        : "空无一物";
+
+    // 构建谜团信息
     let mysteryContext = "";
     if (gameState.mystery.active) {
         mysteryContext = `
@@ -2381,9 +3361,21 @@ async function callAI(userPrompt, isSystem = false) {
         `;
     }
 
+    // ★★★ 核心修复：去掉了容易导致代码报错的特殊符号 ★★★
     const systemPrompt = `
     你是一个名为“雾川异闻录”的文字冒险游戏KP（守密人）。
-    风格：现代都市怪谈, 日常生活模拟, 轻度克苏鲁。
+    
+    【★ 重要指令：思维链自检 / COT Protocol ★】
+    在输出 JSON 之前，必须先在最前面输出一段思考过程（纯文本），格式如下：
+    [★★★ 思维链自检 / COT Protocol ★★★] 
+    1、当前是什么场景？玩家执行了什么行动？
+    2、玩家的行为是否应该触发物品掉落？解锁新地点？
+    3、是否缓慢推进剧情（根据谜团和线索），具有生活感，而不是快节奏恐怖？
+    4、逻辑检查：玩家是否在做不可能的事（如没钱买东西、在事务所外用电脑）？
+    --------------------------------------------------
+    (思考结束后，再输出标准的 JSON 数据)
+
+    **核心风格：都市怪谈 (Urban Legend) + 黑色幽默 + 生活流 (Slice of Life) + 轻灵异**
 
     [当前状态]
     玩家：${gameState.player.name} (${gameState.player.job})
@@ -2392,26 +3384,41 @@ async function callAI(userPrompt, isSystem = false) {
     时间：Day ${gameState.day} - ${TIME_PHASES[gameState.timePhase]}
     地点：${gameState.currentLocation}
     
-    [重要记忆]
+    [重要记忆与物品]
     任务：${activeQuests}
     线索：${knownClues}
+    【★ 玩家背包物品】：${inventoryItems}
     ${mysteryContext}
     
     [核心规则]
-    1. **强制检定**：涉及风险行为必须返回 "check" 字段。
-    2. **经营要素**：声望影响委托，完成委托给予金钱。
-    3. **地点移动**：移动时必须返回 "move_to"。
-    4. **回复格式**：必须是纯JSON。
+    0. **★ 数值操作强制协议 (Stat Tag Protocol) ★**：
+       - 只要剧情中玩家**身体受伤**（摔倒、被打、中毒），**必须**在文本中附带扣血标签，例如 [HP-10] 或 (HP-5)。
+       - 只要玩家**精神受创**（看到怪物、恐惧），**必须**附带 [SAN-5]。
+       - 如果玩家通过锻炼、读书或特殊事件获得了**能力提升**，请奖励属性点！例如 [PHY+1] (体魄增强)、[INT+1] (学识增加)。
+       - **严禁**只写剧情不写标签！没有标签系统无法扣血！
+    1. **【严厉的经济控制】(Economy Control)**：
+       - 本游戏是**贫穷模拟器**！玩家非常穷！
+       - **严禁随意掉落金钱**！除非玩家完成了正式委托、在商店卖了东西、或者搜刮了收银机，否则不要给钱。
+       - 如果非要给钱，必须通过 'loot' 数组返回。
+    2. **【时间同步协议】(Time Sync)**：
+       - 如果剧情中时间发生了显著变化（例如：等到了晚上、睡了一觉、昏迷醒来），**必须**返回 "change_time" 字段！
+       - 数值对照：0=上午, 1=下午, 2=黄昏, 3=深夜。
+       - 例如：剧情写“天黑了”，JSON里必须带 "change_time": 3。
+    3. **自由探索模式**：
+       - 如果需要玩家寻找线索或移动，返回空数组 choices: []，进入自由模式。
+    4. **选项生成规则**：
+       - **数量固定**：非自由模式下必须严格生成 4 个选项。
+       - **强制检定**：任何具有不确定性、危险性、或需要专业技能的行为（如撬锁、说服、攻击、偷窃），**必须**返回 "check" 字段触发掷骰子！不要直接给出成功结果，让运气决定命运。
     
-    请严格返回JSON格式（示例）：
+    JSON 结构示例（直接 JSON，不要代码块）：
     {
-        "description": "剧情文本...",
+        "description": "剧情文本... [HP-5]",
         "choices": [
-            {"text": "选项A", "action": "...", "check": "INT"}, 
-            {"text": "选项B", "action": "..."}
+            {"text": "选项1", "action": "..."}, 
+            {"text": "选项2", "action": "...", "check": "PHY"}
         ],
         "event": "none" | "san_check",
-        "loot": [],
+        "loot": [ {"name": "金钱(200)", "type": "misc", "desc": "钱"} ], 
         "unlock_location": "地点名",
         "new_clue": "线索内容", 
         "update_quest": "任务内容",
@@ -2433,18 +3440,38 @@ async function callAI(userPrompt, isSystem = false) {
             headers: { 'Authorization': `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: config.model,
-                messages: messages,
-                response_format: { type: "json_object" }
+                messages: messages
             })
         });
-        const data = await res.json();
-        const content = data.choices[0].message.content;
-        if (!isSystem) gameState.history.push({ role: "assistant", content: content });
         
-        let jsonStr = content.replace(/```json/g, '').replace(/```/g, '');
+        const data = await res.json();
+        const rawContent = data.choices[0].message.content;
+
+        // 分离 思维链(CoT) 和 JSON
+        const firstBrace = rawContent.indexOf('{');
+        const lastBrace = rawContent.lastIndexOf('}');
+        
+        if (firstBrace === -1 || lastBrace === -1) {
+            throw new Error("AI 未返回有效的 JSON 数据");
+        }
+
+        const jsonStr = rawContent.substring(firstBrace, lastBrace + 1);
+        const cotText = rawContent.substring(0, firstBrace).trim();
+
+        if (cotText) console.log("%c[AI 思维链 CoT]", "color: cyan; font-weight: bold;", cotText);
+
+        if (!isSystem) {
+            gameState.history.push({ role: "assistant", content: jsonStr });
+        }
+        
         return JSON.parse(jsonStr);
-    } catch (e) { console.error(e); return null; }
+
+    } catch (e) { 
+        console.error("AI 解析错误:", e);
+        return null; 
+    }
 }
+
 
 // --- 辅助函数 ---
 function addToLog(text) {
@@ -2462,6 +3489,15 @@ function hideOverlay(id) { document.getElementById(id).style.display = 'none'; }
 
 // 新增：显示教程
 function showTutorial() { document.getElementById('tutorial-layer').style.display = 'flex'; }
+
+// 新增：美化版弹窗控制
+function showPixelMsg(text) {
+    document.getElementById('modal-text').innerHTML = text; // 支持HTML颜色
+    document.getElementById('pixel-modal').style.display = 'flex';
+}
+function closePixelMsg() {
+    document.getElementById('pixel-modal').style.display = 'none';
+}
 
 // --- 新增：手记逻辑 ---
 function showNote() {
@@ -2515,3 +3551,4 @@ function showNote() {
 </script>
 </body>
 </html>
+
